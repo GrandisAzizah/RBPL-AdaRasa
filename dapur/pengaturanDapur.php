@@ -182,7 +182,7 @@ session_start();
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><svg width="53" height="53" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <a class="nav-link" href="pesananDapurDiterima.php"><svg width="53" height="53" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M37.5417 8.8335H15.4583C13.0191 8.8335 11.0417 10.8109 11.0417 13.2502V41.9585C11.0417 44.3978 13.0191 46.3752 15.4583 46.3752H37.5417C39.9809 46.3752 41.9583 44.3978 41.9583 41.9585V13.2502C41.9583 10.8109 39.9809 8.8335 37.5417 8.8335Z" stroke="black" stroke-width="2" />
                         <path d="M19.875 19.875H33.125M19.875 28.7083H33.125M19.875 37.5417H28.7083" stroke="black" stroke-width="2" stroke-linecap="round" />
                     </svg>
