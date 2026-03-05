@@ -1,0 +1,137 @@
+.container-main {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px 20px 100px 20px;
+}
+
+.container-order {
+    display: flex;
+    justify-content: center;
+    padding: 0 20px;
+}
+
+.container-bahan-baku {
+    display: flex;
+    justify-content: center;
+    padding: 0 20px;
+}
+
+h5 {
+    padding-left: 65px;
+    font-size: 24px;
+    margin-top: 30px;
+    font-weight:550;
+    color: #000000;
+}
+
+img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin: 10px;
+    object-fit: cover !important;
+}
+
+.menu-button {
+    background: transparent !important;
+    outline: 1px solid #C9B8FF !important;
+    color: #000000;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    width: 60px;
+    height: 60px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    margin: 0 15px;
+}
+
+.menu-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.load-more-button {
+    background: #C9B8FF !important;
+    outline: 1px solid #000000 !important;
+    color: #000000;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    width: 85px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center !important;
+    border: none;
+    margin: 0 auto;
+    border-radius: 30px;
+    text-align: center;
+    gap: 8px;
+}
+
+.load-more-button svg {
+    margin-top: 4px;
+}
+
+.container-button {
+    display: flex;
+    padding: 20px;
+    justify-content: center;
+}
+
+p {
+    text-align: center;
+    font-size: 24px;
+    margin-top: 30px;
+    font-weight: 550;
+    color: #000000;
+}
+
+.order-data {
+    width: 100%;
+    max-width: 335px;
+    height: 100%;
+    max-height:90px;
+    border: 1px solid #C9B8FF !important;
+}
+
+.card-body .card-title {
+    margin-top: 0;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+.card-body .card-detail {
+    margin-top: 0;
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: 5px;
+    text-align: left;
+}
+
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 20px 20px;
+    border-color: #6750A4 !important;
+}
+
+input[type="checkbox"]:checked {
+    background-color: #6750A4;
+    border: 1px solid #6750A4 !important;
+    box-shadow: none !important;
+}
+
+input[type="checkbox"]:focus {
+    outline:#6750A4 !important;
+    box-shadow: none !important;
+    border-color: #6750A4 !important;
+}
