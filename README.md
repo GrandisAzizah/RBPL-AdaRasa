@@ -1,6 +1,6 @@
 # RBPL-AdaRasa
 
-Sistem Manajemen Pesanan Katering
+Sistem Manajemen Pesanan Katering (Ada Rasa)
 Aplikasi web untuk mengelola pemesanan katering, mencakup alur kerja antara Admin, Tim Dapur, dan Tim Pengantaran.
 Fitur
 
