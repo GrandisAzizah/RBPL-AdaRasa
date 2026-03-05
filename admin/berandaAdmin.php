@@ -7,37 +7,103 @@
     <title>Beranda Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="../pesanan.css">
+    <link rel="stylesheet" href="./admin-page.css">
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
-    <p>Beranda Admin</p>
+    <p>Halo, ADMIN!</p>
 
-    <div class="bottom-nav">
-        <ul class="nav justify-content-center">
-            <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="notifikasiAdmin.php"><svg width="53" height="45" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M39.7344 34.0144C38.5558 32.9637 37.524 31.7592 36.6667 30.4333C35.7298 28.6035 35.1688 26.6046 35.0167 24.5544V18.5167C35.0248 15.2968 33.8568 12.1849 31.7322 9.76551C29.6077 7.34612 26.6727 5.78582 23.4789 5.37777V3.8011C23.4789 3.36836 23.307 2.95333 23.001 2.64734C22.695 2.34134 22.28 2.16943 21.8472 2.16943C21.4145 2.16943 20.9995 2.34134 20.6935 2.64734C20.3875 2.95333 20.2156 3.36836 20.2156 3.8011V5.40221C17.0503 5.83968 14.1509 7.40941 12.0542 9.82067C9.95755 12.2319 8.80578 15.3213 8.81222 18.5167V24.5544C8.66012 26.6046 8.09909 28.6035 7.16222 30.4333C6.31996 31.7562 5.30468 32.9606 4.14333 34.0144C4.01296 34.129 3.90847 34.27 3.83682 34.428C3.76517 34.5861 3.728 34.7576 3.72778 34.9311V36.5933C3.72778 36.9175 3.85654 37.2284 4.08576 37.4576C4.31497 37.6868 4.62584 37.8155 4.95 37.8155H38.9278C39.2519 37.8155 39.5628 37.6868 39.792 37.4576C40.0212 37.2284 40.15 36.9175 40.15 36.5933V34.9311C40.1498 34.7576 40.1126 34.5861 40.041 34.428C39.9693 34.27 39.8648 34.129 39.7344 34.0144ZM6.27 35.3711C7.4069 34.2723 8.40811 33.0413 9.25222 31.7044C10.4326 29.4946 11.1206 27.0554 11.2689 24.5544V18.5167C11.2204 17.0843 11.4607 15.6567 11.9754 14.3191C12.4901 12.9815 13.2687 11.7612 14.2649 10.7307C15.261 9.7003 16.4543 8.88086 17.7738 8.32121C19.0932 7.76156 20.5118 7.47315 21.945 7.47315C23.3782 7.47315 24.7968 7.76156 26.1162 8.32121C27.4357 8.88086 28.629 9.7003 29.6251 10.7307C30.6213 11.7612 31.3999 12.9815 31.9146 14.3191C32.4293 15.6567 32.6696 17.0843 32.6211 18.5167V24.5544C32.7694 27.0554 33.4574 29.4946 34.6378 31.7044C35.4819 33.0413 36.4831 34.2723 37.62 35.3711H6.27Z" fill="black" />
-                        <path d="M22 41.898C22.7699 41.8803 23.5088 41.5908 24.0858 41.0808C24.6629 40.5709 25.041 39.8732 25.1533 39.1113H18.7244C18.8399 39.8939 19.2357 40.608 19.8383 41.1206C20.4408 41.6332 21.209 41.9094 22 41.898Z" fill="black" />
-                    </svg>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#"><svg width="53" height="53" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M37.5417 8.8335H15.4583C13.0191 8.8335 11.0417 10.8109 11.0417 13.2502V41.9585C11.0417 44.3978 13.0191 46.3752 15.4583 46.3752H37.5417C39.9809 46.3752 41.9583 44.3978 41.9583 41.9585V13.2502C41.9583 10.8109 39.9809 8.8335 37.5417 8.8335Z" stroke="black" stroke-width="2" />
-                        <path d="M19.875 19.875H33.125M19.875 28.7083H33.125M19.875 37.5417H28.7083" stroke="black" stroke-width="2" stroke-linecap="round" />
-                    </svg>
+    <div class="container-main">
 
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="pengaturanAdmin.php"><svg width="53" height="53" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M25.3958 30.9165C34.5383 30.9165 41.9583 34.3836 41.9583 38.6457V44.1665H8.83333V38.6457C8.83333 34.3836 16.2533 30.9165 25.3958 30.9165ZM39.75 38.6457C39.75 35.5982 33.3237 33.1248 25.3958 33.1248C17.4679 33.1248 11.0417 35.5982 11.0417 38.6457V41.9582H39.75V38.6457ZM25.3958 11.0415C27.4457 11.0415 29.4117 11.8558 30.8612 13.3053C32.3107 14.7548 33.125 16.7208 33.125 18.7707C33.125 20.8206 32.3107 22.7865 30.8612 24.236C29.4117 25.6855 27.4457 26.4998 25.3958 26.4998C23.3459 26.4998 21.38 25.6855 19.9305 24.236C18.481 22.7865 17.6667 20.8206 17.6667 18.7707C17.6667 16.7208 18.481 14.7548 19.9305 13.3053C21.38 11.8558 23.3459 11.0415 25.3958 11.0415ZM25.3958 13.2498C23.9316 13.2498 22.5274 13.8315 21.492 14.8669C20.4567 15.9022 19.875 17.3065 19.875 18.7707C19.875 20.2349 20.4567 21.6391 21.492 22.6745C22.5274 23.7098 23.9316 24.2915 25.3958 24.2915C26.86 24.2915 28.2643 23.7098 29.2996 22.6745C30.335 21.6391 30.9167 20.2349 30.9167 18.7707C30.9167 17.3065 30.335 15.9022 29.2996 14.8669C28.2643 13.8315 26.86 13.2498 25.3958 13.2498Z" fill="black" />
+        <div class="container-button">
+            <div class="menu-item">
+                <button type="button" class="menu-button" data-bs-toggle="modal" data-bs-target="">
+                    <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M13.125 7.29167C13.125 6.51812 13.4323 5.77625 13.9793 5.22927C14.5263 4.68229 15.2681 4.375 16.0417 4.375H18.9583C19.7319 4.375 20.4737 4.68229 21.0207 5.22927C21.5677 5.77625 21.875 6.51812 21.875 7.29167V13.125H27.7083C28.4819 13.125 29.2237 13.4323 29.7707 13.9793C30.3177 14.5263 30.625 15.2681 30.625 16.0417V18.9583C30.625 19.7319 30.3177 20.4737 29.7707 21.0207C29.2237 21.5677 28.4819 21.875 27.7083 21.875H21.875V27.7083C21.875 28.4819 21.5677 29.2237 21.0207 29.7707C20.4737 30.3177 19.7319 30.625 18.9583 30.625H16.0417C15.2681 30.625 14.5263 30.3177 13.9793 29.7707C13.4323 29.2237 13.125 28.4819 13.125 27.7083V21.875H7.29167C6.51812 21.875 5.77625 21.5677 5.22927 21.0207C4.68229 20.4737 4.375 19.7319 4.375 18.9583V16.0417C4.375 15.2681 4.68229 14.5263 5.22927 13.9793C5.77625 13.4323 6.51812 13.125 7.29167 13.125H13.125V7.29167ZM18.9583 7.29167H16.0417V14.5833C16.0417 14.9701 15.888 15.341 15.6145 15.6145C15.341 15.888 14.9701 16.0417 14.5833 16.0417H7.29167V18.9583H14.5833C14.9701 18.9583 15.341 19.112 15.6145 19.3855C15.888 19.659 16.0417 20.0299 16.0417 20.4167V27.7083H18.9583V20.4167C18.9583 20.0299 19.112 19.659 19.3855 19.3855C19.659 19.112 20.0299 18.9583 20.4167 18.9583H27.7083V16.0417H20.4167C20.0299 16.0417 19.659 15.888 19.3855 15.6145C19.112 15.341 18.9583 14.9701 18.9583 14.5833V7.29167Z" fill="black" />
                     </svg>
-                </a>
-            </li>
-        </ul>
+                </button>
+                <span class="menu-label">Menu</span>
+            </div>
+
+            <div class="menu-item">
+                <button type="button" class="menu-button" data-bs-toggle="modal" data-bs-target="">
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M18.0045 31.5C10.9305 31.5 7.395 31.5 5.1975 29.3025C3 27.108 3 23.5725 3 16.5V11.916C3 9.192 3 7.83 3.57 6.807C3.9767 6.07811 4.57811 5.4767 5.307 5.07C6.33 4.5 7.692 4.5 10.419 4.5C12.165 4.5 13.038 4.5 13.8 4.7865C15.5445 5.4405 16.2645 7.026 17.052 8.5995L18.0045 10.5M12.003 10.5H25.131C28.2915 10.5 29.871 10.5 31.008 11.259C31.4994 11.587 31.9214 12.0085 32.25 12.4995C32.841 13.3845 32.97 14.5395 33 16.5M27 29.6595C29.6505 29.6595 31.8 27.462 31.8 24.75C31.8 22.0395 29.6505 19.8405 27 19.8405M27 29.6595C24.3495 29.6595 22.2 27.462 22.2 24.75C22.2 22.0395 24.3495 19.8405 27 19.8405M27 29.6595V31.5M27 19.8405V18M22.6365 22.0725L21.0015 21.0675M33 28.434L31.365 27.429M31.3635 22.074L32.9985 21.069M21 28.434L22.635 27.429" stroke="black" stroke-width="2.25" stroke-linecap="round" />
+                    </svg>
+                </button>
+                <span class="menu-label">Pesanan</span>
+            </div>
+
+            <div class="menu-item">
+                <button type="button" class="menu-button" data-bs-toggle="modal" data-bs-target="">
+                    <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                        <rect width="34.0596" height="34.0596" fill="url(#pattern0_151_6152)" />
+                        <defs>
+                            <pattern id="pattern0_151_6152" patternContentUnits="objectBoundingBox" width="1" height="1">
+                                <use xlink:href="#image0_151_6152" transform="scale(0.01)" />
+                            </pattern>
+                            <image id="image0_151_6152" width="100" height="100" preserveAspectRatio="none" xlink:href="data:image/png;base64,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" />
+                        </defs>
+                    </svg>
+                </button>
+                <span class="menu-label">Laporan</span>
+            </div>
+
+            <div class="menu-item">
+                <button type="button" class="menu-button" data-bs-toggle="modal" data-bs-target="">
+                    <svg width="35" height="35" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.8438 8.15625C20.8438 9.83872 20.1754 11.4523 18.9857 12.642C17.796 13.8316 16.1825 14.5 14.5 14.5C12.8175 14.5 11.204 13.8316 10.0143 12.642C8.82461 11.4523 8.15625 9.83872 8.15625 8.15625C8.15625 6.47378 8.82461 4.86023 10.0143 3.67054C11.204 2.48086 12.8175 1.8125 14.5 1.8125C16.1825 1.8125 17.796 2.48086 18.9857 3.67054C20.1754 4.86023 20.8438 6.47378 20.8438 8.15625ZM19.0312 8.15625C19.0312 6.95449 18.5539 5.80195 17.7041 4.95217C16.8543 4.1024 15.7018 3.625 14.5 3.625C13.2982 3.625 12.1457 4.1024 11.2959 4.95217C10.4461 5.80195 9.96875 6.95449 9.96875 8.15625C9.96875 9.35801 10.4461 10.5106 11.2959 11.3603C12.1457 12.2101 13.2982 12.6875 14.5 12.6875C15.7018 12.6875 16.8543 12.2101 17.7041 11.3603C18.5539 10.5106 19.0312 9.35801 19.0312 8.15625ZM6.79688 16.3125C5.95564 16.3125 5.14886 16.6467 4.55402 17.2415C3.95918 17.8364 3.625 18.6431 3.625 19.4844V19.9375C3.625 22.1062 5.00522 23.9404 6.96453 25.1874C8.93472 26.4417 11.6018 27.1875 14.5 27.1875C17.3982 27.1875 20.0644 26.4417 22.0355 25.1874C23.9948 23.9404 25.375 22.1062 25.375 19.9375V19.4844C25.375 18.6431 25.0408 17.8364 24.446 17.2415C23.8511 16.6467 23.0444 16.3125 22.2031 16.3125H6.79688ZM5.4375 19.4844C5.4375 19.1238 5.58072 18.7781 5.83565 18.5232C6.09058 18.2682 6.43635 18.125 6.79688 18.125H22.2031C22.5637 18.125 22.9094 18.2682 23.1643 18.5232C23.4193 18.7781 23.5625 19.1238 23.5625 19.4844V19.9375C23.5625 21.2724 22.7106 22.61 21.0622 23.6586C19.4246 24.7008 17.1073 25.375 14.5 25.375C11.8927 25.375 9.57544 24.7008 7.93784 23.6586C6.28847 22.6109 5.4375 21.2715 5.4375 19.9375V19.4844Z" fill="black" />
+                    </svg>
+                </button>
+                <span class="menu-label">Pengaturan</span>
+            </div>
+        </div>
+
+        <h5>Pesanan Masuk</h5>
+        <!-- looping ga si di sini tuh -->
+        <div class="container-order">
+            <div class="order-data card mb-3">
+                <div class="row g-0">
+                    <!-- Gambar -->
+                    <div class="col-auto">
+                        <img src="../rbpl-nasi-kuning.png" class="order-img" alt="...">
+                    </div>
+
+                    <!-- Nama Pemesan dan detail lainnya -->
+                    <div class="col">
+                        <div class="card-body">
+                            <p class="card-title">Nama Pemesan-Pesanan</p>
+                            <p class="card-detail">Porsi</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button type="button" class="load-more-button" data-bs-toggle="modal" data-bs-target="">
+            <span> More</span>
+            <svg width="10" height="10" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0L5 5L10 0H0Z" fill="black" />
+            </svg>
+        </button>
+
+        <h5>Bahan Baku</h5>
+        <div class="container-bahan-baku">
+            <div class="order-data card mb-3">
+                <div class="row g-0">
+                    <!-- Nama Pemesan dan detail lainnya -->
+                    <div class="col">
+                        <div class="card-body">
+                            <p class="card-title">Bahan Baku</p>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 
