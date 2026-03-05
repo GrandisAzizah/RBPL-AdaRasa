@@ -86,6 +86,9 @@ if (isset($_POST["register"])) {
             <label for="password2">Konfirmasi Password</label><br>
             <input type="password" id="password2" name="password2" id="password2" required><br><br>
 
+            <label for="no_hp">No HP</label><br>
+            <input type="text" id="no_hp" name="no_hp" id="no_hp" placeholder="No HP" maxlength="12" required><br><br>
+
             <button type="submit" name="register" value="register" class="btn btn-dark">Register</button>
             <span>Login <a href="login.php">di sini</a></span>
         </form>
