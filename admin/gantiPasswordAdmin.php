@@ -91,7 +91,8 @@ if (isset($_POST["reset"])) {
 
 <body>
     <div>
-        <div class="menu-item"><a href="pengaturanAdmin.php">
+        <div class="menu-item">
+            <a href="pengaturanAdmin.php">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_78_992)">
                         <path d="M19.825 25L25.425 30.6L24 32L16 24L24 16L25.425 17.4L19.825 23H32V25H19.825Z" fill="#1D1B20" />
