@@ -122,8 +122,7 @@ function upload()
 
     // cek apakah ada gambar yang diupload
     if ($error == 4) { // 4: tidak ada file yang diunggah
-        echo "<script>alert('Silakan unggah gambar')</script>";
-        return false;
+        return ['status' => 'error', 'pesan' => 'Silakan unggah gambar terlebih dahulu.'];
     }
 
     // cek apakah yang diunggah gambar atau bukan agar user hanya unggah gambar
@@ -151,7 +150,7 @@ function upload()
     $namaFileBaru .= '.' . $ekstensiGambar;
 
     // masukkan ke direktori
-    move_uploaded_file($tmpName, 'img/' . $namaFileBaru);
+    move_uploaded_file($tmpName, '../img/' . $namaFileBaru);
 
-    return 'img/' . $namaFileBaru;
+    return '../img/' . $namaFileBaru;
 }
