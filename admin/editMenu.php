@@ -1,7 +1,7 @@
 <?php
 
 session_start();
-// // user belum login
+// user belum login
 if (!isset($_SESSION["login"])) {
     header("location: login.php");
     exit;
@@ -9,16 +9,22 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
-// alert jika input berhasil atau gagal
+// ambil data di url
+if (!isset($_GET["id_menu"]) || !is_numeric(($_GET["id_menu"]))) { //is_numeric mencegah injection
+    die("id_menu tidak ditemukan"); //die untuk menghentikan eksekusi
+}
+$id_menu = (int)$_GET["id_menu"];
+$m = query("SELECT * FROM menu WHERE id_menu = $id_menu")[0];
+
 $pesan = '';
 $tipe = '';
 if (isset($_POST["submit"])) {
-    $hasil = tambah($_POST);
+    $hasil = editMenu($_POST);
     if ($hasil > 0) {
-        $pesan = 'Data berhasil ditambahkan!';
+        $pesan = 'Data berhasil diedit!';
         $tipe = 'success';
     } else {
-        $pesan = 'Data gagal ditambahkan!';
+        $pesan = 'Data gagal diedit!';
         $tipe = 'danger';
     }
 }
@@ -33,7 +39,7 @@ if (isset($_POST["submit"])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <title>Tambah Data</title>
+    <title>Edit Menu</title>
 </head>
 
 
@@ -133,9 +139,8 @@ if (isset($_POST["submit"])) {
                     <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </a>
-            <h5 style="margin: 0;">Tambah Menu</h5>
+            <h5 style="margin: 0;">Edit Menu</h5>
         </div>
-
         <?php if ($pesan): ?>
             <div class="mt-3 mb-3 alert alert- <?= $tipe ?> alert-dismissible fade show" role="alert">
                 <?= $pesan ?>
@@ -144,17 +149,21 @@ if (isset($_POST["submit"])) {
         <?php endif; ?>
         <div class="container">
             <form action="" method="POST" enctype="multipart/form-data">
+                <!-- id atau ID -->
+                <input type="hidden" name="id_menu" value="<?= ($m["id_menu"]); ?>">
+                <input type="hidden" name="gambarLama" value="<?= ($m["gambar_menu"]); ?>">
 
                 <!-- INPUT NAMA MENU -->
                 <label for="nama-menu">Nama Menu <br></label>
-                <input type="text" name="nama-menu" id="nama-menu" maxlength="30" required><br><br>
+                <input type="text" name="nama-menu" id="nama-menu" value="<?= ($m["nama_menu"]); ?>" maxlength="30" required><br><br>
 
                 <!-- INPUT HARGA -->
                 <label for="harga-menu">Harga Menu:<br></label>
-                <input type="number" name="harga-menu" id="harga-menu" min="0" max="999999" required><br><br>
+                <input type="number" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" max="999999" required><br><br>
 
                 <!-- INPUT GAMBAR -->
                 <label for="gambar-menu">Gambar:<br></label>
+                <img src="<?= ($m["gambar_menu"]); ?>" alt="" style="width: 100%; margin-bottom: 10px; border-radius: 4px;">
                 <input type="file" name="gambar-menu" id="gambar-menu" required><br><br>
 
                 <!-- SUBMIT BUTTON -->
