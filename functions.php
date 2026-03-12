@@ -152,5 +152,53 @@ function upload()
     // masukkan ke direktori
     move_uploaded_file($tmpName, '../img/' . $namaFileBaru);
 
-    return '../img/' . $namaFileBaru;
+    return '/RBPL-AdaRasa/img/' . $namaFileBaru;
+}
+
+function hapusMenu($id_menu)
+{
+    global $conn;
+
+    // ambil path gambar
+    $result = mysqli_query($conn, "SELECT gambar_menu FROM menu WHERE id_menu = $id_menu");
+    $row = mysqli_fetch_assoc($result);
+
+    // hapus file gambar dari folder
+    if ($row && file_exists($row['gambar_menu'])) {
+        unlink($row['gambar_menu']);
+    }
+
+    // hapus data menu dari database
+    mysqli_query($conn, "DELETE FROM menu WHERE id_menu = $id_menu");
+    return mysqli_affected_rows($conn);
+}
+
+function editMenu($data)
+{
+    global $conn;
+
+    $id_menu = $data["id_menu"];
+    $nama_menu = htmlspecialchars($data["nama-menu"]);
+    $harga = htmlspecialchars($data["harga-menu"]);
+
+    // cek apakah user pilih gambar baru atau tidak
+    if ($_FILES['gambar-menu']['error'] === 4) {
+        // user tidak pilih gambar baru, gunakan gambar lama
+        $gambar_menu = $data["gambarLama"];
+    } else {
+        // user pilih gambar baru, upload gambar baru
+        $gambar_menu = upload();
+        if (!$gambar_menu) {
+            return false; // jika upload gagal, hentikan proses edit
+        }
+    }
+
+    $query = "UPDATE menu SET
+                nama_menu = '$nama_menu',
+                harga_menu = '$harga',
+                gambar_menu = '$gambar_menu'
+              WHERE id_menu = $id_menu";
+
+    mysqli_query($conn, $query);
+    return mysqli_affected_rows($conn);
 }
