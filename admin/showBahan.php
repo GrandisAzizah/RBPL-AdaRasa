@@ -21,7 +21,7 @@ $nama_menu = $menu[0]['nama_menu'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu</title>
+    <title>Lihat Bahan Baku</title>
     <link rel="stylesheet" href="menu.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
@@ -56,14 +56,13 @@ $nama_menu = $menu[0]['nama_menu'];
                     <div class="col">
                         <div class="card-body">
                             <h5 class="card-title"><?= $row['nama_bahan'] ?></h5>
-                            <p class="card-text"><?= $row['jumlah'] ?></p>
-                            <p class="card-text"><?= $row['satuan'] ?></p>
+                            <p class="card-text"><?= $row['jumlah'] . ' ' . $row['satuan'] ?></p>
                         </div>
                     </div>
                     <!-- Tombol Edit dan Hapus -->
                     <div class="col-auto menu-btn d-flex align-items-center gap-2 p-2 align-self-end">
                         <a href="editBahan.php?id_bahan=<?= $row['id_bahan'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
-                        <a href="#" class="delete-btn btn btn-danger btn-sm" onclick="setHapusUrl('hapusBahan.php?id_bahan=<?= $row['id_bahan'] ?>')">Hapus</a>
+                        <a href="#" class="delete-btn btn btn-danger btn-sm" onclick="setHapusUrl('hapusBahan.php?id_bahan=<?= $row['id_bahan'] ?>&id_menu=<?= $id_menu ?>')">Hapus</a>
                     </div>
                 </div>
             </div>
