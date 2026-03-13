@@ -13,13 +13,22 @@ require '../functions.php';
 if (!isset($_GET["id_bahan"]) || !is_numeric(($_GET["id_bahan"]))) { //is_numeric mencegah injection
     die("id_bahan tidak ditemukan"); //die untuk menghentikan eksekusi
 }
+
 $id_bahan = (int)$_GET["id_bahan"];
-$m = query("SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
+$bahan = query("SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
+
+// ambil id menu dari data bahan (fk_menu)
+$id_menu = $bahan['fk_menu'];
+
+// ambil nama menu untuk ditampilkan
+$menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu")[0];
+$nama_menu = $menu['nama_menu'];
 
 $pesan = '';
 $tipe = '';
+
 if (isset($_POST["submit"])) {
-    $hasil = editMenu($_POST);
+    $hasil = editBahan($_POST);
     if ($hasil > 0) {
         $pesan = 'Data berhasil diedit!';
         $tipe = 'success';
@@ -150,25 +159,26 @@ if (isset($_POST["submit"])) {
         <div class="container">
             <form action="" method="POST" enctype="multipart/form-data">
 
-                <!-- INPUT NAMA MENU -->
-                <label for="nama-menu">Nama Menu <br></label>
-                <input type="text" name="nama-menu" id="nama-menu" maxlength="30" required><br><br>
+                <!-- Nama Menu (read) -->
+                <label>Nama Menu</label><br>
+                <input type="hidden" name="id_bahan" value="<?= $bahan['id_bahan'] ?>">
+                <input type="text" value="<?= $nama_menu ?>" disabled><br><br>
 
-                <!-- INPUT NAMA MENU -->
-                <label for="nama-bahan-baku">Nama Bahan Baku <br></label>
-                <input type="text" name="nama-bahan-baku" id="nama-bahan-baku" maxlength="30" required><br><br>
+                <!-- INPUT NAMA BAHAN -->
+                <label for="nama_bahan">Nama Bahan Baku <br></label>
+                <input type="text" name="nama_bahan" id="nama_bahan" value="<?= $bahan['nama_bahan'] ?>" maxlength="40" required><br><br>
 
                 <!-- INPUT HARGA -->
                 <label for="jumlah">Jumlah:<br></label>
-                <input type="number" name="jumlah" id="jumlah" min="0" max="999999" required><br><br>
+                <input type="number" name="jumlah" id="jumlah" value="<?= $bahan['jumlah'] ?>" min="0" max="999999" required><br><br>
 
                 <!-- INPUT SATUAN -->
                 <label for="satuan">Satuan</label><br>
                 <select name="satuan" id="satuan">
-                    <option value="kg">kg</option>
-                    <option value="gram">gram</option>
-                    <option value="bungkus">bungkus</option>
-                    <option value="renteng">renteng</option>
+                    <option value="kg" <?= $bahan['satuan'] == 'kg' ? 'selected' : '' ?>>kg</option>
+                    <option value="gram" <?= $bahan['satuan'] == 'gram' ? 'selected' : '' ?>>gram</option>
+                    <option value="bungkus" <?= $bahan['satuan'] == 'bungkus' ? 'selected' : '' ?>>bungkus</option>
+                    <option value="renteng" <?= $bahan['satuan'] == 'renteng' ? 'selected' : '' ?>>renteng</option>
                 </select>
 
                 <!-- SUBMIT BUTTON -->
