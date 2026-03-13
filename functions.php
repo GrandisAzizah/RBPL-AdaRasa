@@ -164,8 +164,12 @@ function hapusMenu($id_menu)
     $row = mysqli_fetch_assoc($result);
 
     // hapus file gambar dari folder
-    if ($row && file_exists($row['gambar_menu'])) {
-        unlink($row['gambar_menu']);
+    if ($row) {
+        $pathGambar = '../img/' . basename($row['gambar_menu']);
+
+        if (file_exists($pathGambar)) {
+            unlink($pathGambar);
+        }
     }
 
     // hapus data menu dari database
@@ -193,11 +197,63 @@ function editMenu($data)
         }
     }
 
+    // override gambar lama dengan gambar baru
+    $pathGambarLama = '../img/' . basename($data["gambarLama"]);
+    if (file_exists($pathGambarLama)) {
+        unlink($pathGambarLama);
+    }
+
     $query = "UPDATE menu SET
                 nama_menu = '$nama_menu',
                 harga_menu = '$harga',
                 gambar_menu = '$gambar_menu'
               WHERE id_menu = $id_menu";
+
+    mysqli_query($conn, $query);
+    return mysqli_affected_rows($conn);
+}
+
+function tambahBahanBaku($data)
+{
+    global $conn;
+    $nama_menu = htmlspecialchars($data['nama-menu']);
+    $nama_bahan = htmlspecialchars($data["nama-bahan"]);
+    $jumlah = htmlspecialchars($data["jumlah"]);
+    $satuan = htmlspecialchars($data['satuan']);
+
+    $query = "INSERT INTO bahan_baku VALUES
+            (NULL, NULL, '$nama_bahan', '$jumlah', '$satuan')
+    ";
+
+    mysqli_query($conn, $query);
+
+    // jika gagal -1, jika berhasil 1
+    return mysqli_affected_rows($conn);
+}
+
+function hapusBahan($id_bahan)
+{
+    global $conn;
+    mysqli_query($conn, "DELETE FROM bahan_baku WHERE id_bahan = $id_bahan");
+    return mysqli_affected_rows($conn);
+}
+
+function editBahan($data)
+{
+    global $conn;
+
+    $id_bahan = $data["id_bahan"];
+    $nama_menu = htmlspecialchars($data["nama-menu"]);
+    $nama_bahan = htmlspecialchars($data['nama-bahan']);
+    $jumlah = htmlspecialchars($data['jumlah']);
+    $satuan = htmlspecialchars($data['satuan']);
+
+    $query = "UPDATE bahan_baku SET
+                nama_menu = '$nama_menu',
+                nama_bahan = '$nama_bahan',
+                jumlah = '$jumlah',
+                satuan = '$satuan',
+              WHERE id_bahan = $id_bahan";
 
     mysqli_query($conn, $query);
     return mysqli_affected_rows($conn);
