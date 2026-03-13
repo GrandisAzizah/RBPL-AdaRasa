@@ -5,10 +5,41 @@ if (!isset($_SESSION["login"])) {
     header("location: login.php");
     exit;
 }
+
+require '../functions.php';
+
+// alert
+$tanggal_hari_ini = date('Y-m-d');
+
+$query = "SELECT COUNT(*) as total FROM pesanan WHERE DATE(tanggal_pesan) = '$tanggal_hari_ini'";
+$result = mysqli_query($conn, $query);
+$row = mysqli_fetch_assoc($result);
+$total_pesanan = $row['total'];
+
+$pesan = "Hari ini ada $total_pesanan pesanan masuk.";
+$tipe = 'info';
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
+<style>
+    .alert {
+        width: 330px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 8px;
+        outline: black solid 1px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    a {
+        text-decoration: none !important;
+        color: inherit;
+    }
+</style>
 
 <head>
     <meta charset="UTF-8">
@@ -72,6 +103,17 @@ if (!isset($_SESSION["login"])) {
                 <span class="menu-label">Pengaturan</span>
             </div>
         </div>
+
+        <?php if ($pesan): ?>
+            <a href="pesanan.php" style="color: inherit;">
+                <div class="mt-3 mb-3 text-center alert alert- <?= $tipe ?> alert-dismissible fade show" role="alert">
+                    <div class="col">
+                        <strong>Informasi</strong><br>
+                        <?= $pesan ?>
+                    </div>
+                </div>
+            </a>
+        <?php endif; ?>
 
         <h5>Pesanan Masuk</h5>
         <!-- looping ga si di sini tuh -->
