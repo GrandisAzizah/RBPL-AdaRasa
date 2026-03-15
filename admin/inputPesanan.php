@@ -114,7 +114,7 @@ require '../functions.php';
 <body>
     <div class="container-main">
         <div class="header-nav-input mt-3">
-            <a href="berandaAdmin.php" class="header-nav-left">
+            <a href="pesanan.php" class="header-nav-left">
                 <svg width="30" height="30" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
@@ -139,8 +139,12 @@ require '../functions.php';
                 <label for="jumlah">Jumlah:<br></label>
                 <input type="number" name="jumlah" id="jumlah" min="0" max="100" required>
 
-                <label for="tanggal_pesan">Tanggal Pesan</label>
-                <input type="date" name="tanggal_pesan" id="tanggal_pesan" required>
+                <label>Tanggal Pemesanan</label>
+                <div class="date-group">
+                    <input type="number" name="tanggal_pesan_day" placeholder="DD" min="1" max="31" required>
+                    <input type="number" name="tanggal_pesan_month" placeholder="MM" min="1" max="12" required>
+                    <input type="number" name="tanggal_pesan_year" placeholder="YYYY" min="2000" max="2100" required>
+                </div>
 
                 <label for="metode_pengantaran">Metode Pengantaran</label>
                 <select name="metode_pengantaran" id="metode_pengantaran">
@@ -148,16 +152,21 @@ require '../functions.php';
                     <option value="Ojek Online">Ojek Online</option>
                 </select><br>
 
-                <label for="tanggal_antar">Tanggal Antar</label>
-                <input type="date" name="tanggal_antar" id="tanggal_antar" required>
-
-                <label for="catatan_khusus_pemesanan">Catatan Khusus Pemesanan</label>
-                <input type="text" name="catatan_khusus_pemesanan" id="catatan_khusus_pemesanan" maxlength="30" required>
+                <label>Tanggal Pengiriman</label>
+                <div class="date-group">
+                    <input type="number" name="tanggal_antar_day" placeholder="DD" min="1" max="31" required>
+                    <input type="number" name="tanggal_antar_month" placeholder="MM" min="1" max="12" required>
+                    <input type="number" name="tanggal_antar_year" placeholder="YYYY" min="2000" max="2100" required>
+                </div>
+                <label for="catatan_khusus_pemesanan" class="form-label">Catatan Khusus Pemesanan</label>
+                <textarea type="text" name="catatan_khusus_pemesanan" id="catatan_khusus_pemesanan" maxlength="255" required></textarea>
             </form>
         </div>
 
         <!-- SUBMIT BUTTON -->
-        <button type="submit" value="Kirim" name="submit" class="btn btn-dark mt-3 input-next">Next</button>
+        <a href="inputBahanPesan.php">
+            <button type="submit" value="Kirim" name="submit" class="btn btn-outline-dark input-next">Next</button>
+        </a>
     </div>
 </body>
 
