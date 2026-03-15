@@ -3,6 +3,46 @@ a {
     color: inherit;
 }
 
+.bahan-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.bahan-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.bahan-item input[type="checkbox"] {
+    width: auto;
+    margin-top: 4px;
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.bahan-label {
+    display: flex;
+    flex-direction: column;
+    font-weight: normal;
+    margin-top: 0;
+    cursor: pointer;
+}
+
+.bahan-nama {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000;
+}
+
+.bahan-jumlah {
+    font-size: 11px;
+    color: #888;
+}
+
 body {
     font-family: 'Aleo', serif !important;
 }
@@ -123,6 +163,11 @@ body {
     margin-bottom: 20px;
 }
 
+.header-nav-title-input {
+    margin: 0 !important;
+    font-size: 18px;  
+}
+
 .input-next {
     background-color: #ffffff;
     outline: black;
@@ -161,6 +206,26 @@ label {
     display: block;
 }
 
+.packing-takaran-group {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+}
+
+.packing-takaran-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.packing-takaran-item select {
+    width: 100%;
+}
+
+.packing-takaran-item label {
+    font-size: 13px;
+}
+
 .sort {
     text-align: start;
     margin-top: 20px;
@@ -177,7 +242,7 @@ select {
     background-color: #ffffff;      
     appearance: none;                  /* hapus 'v' */
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%231E1E1E' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
     background-repeat: no-repeat;
     background-position: right 10px center;  /* arrow tidak mepet */
     cursor: pointer;
