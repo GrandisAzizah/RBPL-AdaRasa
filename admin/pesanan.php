@@ -7,6 +7,8 @@ if (!isset($_SESSION["login"])) {
 }
 
 require '../functions.php';
+
+$pesanan = query("SELECT * FROM pesanan ORDER BY tanggal_pesan ASC");
 ?>
 
 <!DOCTYPE html>
@@ -15,7 +17,7 @@ require '../functions.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesanan & Pelanggan</title>
+    <title>Pesanan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -52,7 +54,7 @@ require '../functions.php';
                     <svg width="13" height="10" viewBox="0 0 13 10" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M4.275 9.01875L0 4.74375L1.06875 3.675L4.275 6.88125L11.1563 0L12.225 1.06875L4.275 9.01875Z" fill="#4A4459" />
                     </svg>
-                    <a href="pesanan.php">Pesanan</a>
+                    <a href="">Pesanan</a>
                 </label>
                 <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off">
                 <label class="btn btn-outline-primary" for="btnradio2"><a href="pelanggan.php">Pelanggan</a></label>
@@ -60,22 +62,29 @@ require '../functions.php';
         </div>
 
         <!-- card untuk pesanan -->
-        <div class="card-order">
-            <div class="row g-0">
-                <!-- Isi -->
-                <div class="col-auto">
-                    <div class="card-body">
-                        <h5 class="card-title">Card Pesanan</h5>
-                        <p class="card-text">Takaran</p>
+        <!-- card untuk pelanggan -->
+        <?php if (count($pesanan) == 0) : ?>
+            <p class="text-center mt-5" style="color: #979696; margin-top: 20px; height: 70vh; display: flex; align-items: center; justify-content: center;">Belum ada data pesanan yang ditambahkan</p>
+        <?php else : ?>
+            <?php foreach ($pesanan as $row) : ?>
+                <div class="card-order">
+                    <div class="row g-0">
+                        <!-- Isi -->
+                        <div class="col-auto">
+                            <div class="card-body">
+                                <h5 class="card-title"><?= ['nama_menu'] ?></h5>
+                                <p class="card-text"><?= ['takaran'] ?></p>
+                            </div>
+                        </div>
+
+                        <!-- Gambar -->
+                        <div class="order-img col">
+                            <img src="../rbpl nasi kuning.png" class="" alt="...">
+                        </div>
                     </div>
                 </div>
-
-                <!-- Gambar -->
-                <div class="order-img col">
-                    <img src="../rbpl nasi kuning.png" class="" alt="...">
-                </div>
-            </div>
-        </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
 </body>
 
 </html>
