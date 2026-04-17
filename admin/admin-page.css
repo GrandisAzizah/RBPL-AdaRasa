@@ -80,7 +80,7 @@ img {
 }
 
 .load-more-button svg {
-    margin-top: 4px;
+    margin-top: 2px;
 }
 
 .container-button {
@@ -138,4 +138,9 @@ input[type="checkbox"]:focus {
     outline:#6750A4 !important;
     box-shadow: none !important;
     border-color: #6750A4 !important;
+}
+
+.alert {
+    background-color: #C6E4FF !important;
+    outline-width: 1.5px;
 }
