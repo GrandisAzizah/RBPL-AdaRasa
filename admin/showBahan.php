@@ -8,7 +8,7 @@ if (!isset($_SESSION["login"])) {
 }
 
 require '../functions.php';
-$bahan = query("SELECT * FROM bahan_baku WHERE fk_menu = $_GET[id_menu] ORDER BY nama_bahan ASC");
+$bahan = query("SELECT * FROM bahan_baku WHERE fk_bahan_menu = $_GET[id_menu] ORDER BY nama_bahan ASC");
 $id_menu = $_GET['id_menu'];
 $menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu");
 $nama_menu = $menu[0]['nama_menu'];
