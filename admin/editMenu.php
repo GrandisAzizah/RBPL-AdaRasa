@@ -155,16 +155,16 @@ if (isset($_POST["submit"])) {
 
                 <!-- INPUT NAMA MENU -->
                 <label for="nama-menu">Nama Menu <br></label>
-                <input type="text" name="nama-menu" id="nama-menu" value="<?= ($m["nama_menu"]); ?>" maxlength="30" required><br><br>
+                <input type="text" name="nama-menu" id="nama-menu" value="<?= ($m["nama_menu"]); ?>" maxlength="30"><br><br>
 
                 <!-- INPUT HARGA -->
                 <label for="harga-menu">Harga Menu:<br></label>
-                <input type="number" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" max="999999" required><br><br>
+                <input type="number" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" max="999999"><br><br>
 
                 <!-- INPUT GAMBAR -->
                 <label for="gambar-menu">Gambar:<br></label>
                 <img src="<?= ($m["gambar_menu"]); ?>" alt="" style="width: 100%; margin-bottom: 10px; border-radius: 4px;">
-                <input type="file" name="gambar-menu" id="gambar-menu" required><br><br>
+                <input type="file" name="gambar-menu" id="gambar-menu"><br><br>
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark mt-3">Kirim</button>
