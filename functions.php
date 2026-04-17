@@ -184,31 +184,37 @@ function editMenu($data)
 
     $id_menu = $data["id_menu"];
     $nama_menu = htmlspecialchars($data["nama-menu"]);
-    $harga = (int)($data["harga-menu"]);
     $hargaRaw = $data["harga-menu"];
+    $hargaClean = preg_replace('/[^0-9]/', '', $hargaRaw);
 
-    if (strlen($hargaRaw) > 6) {
+    if (strlen($hargaClean) > 6 || strlen($hargaClean) == 0) {
         return false;
     }
 
-    $harga = (int)$hargaRaw;
+    $harga = intval($hargaClean);
 
+    // Validasi range
     if ($harga < 0 || $harga > 999999) {
         return false;
     }
 
-    if ($_FILES['gambar-menu']['error'] === 4) {
-        $gambar_menu = $data["gambarLama"];
-    } else {
-        $gambar_menu = upload();
-        if (!$gambar_menu) {
-            return false;
+    $gambar_menu = $data["gambarLama"];
+    $uploadGambarBaru = false;
+    if ($_FILES['gambar-menu']['error'] !== 4) {
+        $gambar_baru = upload();
+        if ($gambar_baru) {
+            $gambar_menu = $gambar_baru;
+            $uploadGambarBaru = true;
+        } else {
+            return false; // upload gagal
         }
     }
 
-    $pathGambarLama = '../img/' . basename($data["gambarLama"]);
-    if (file_exists($pathGambarLama)) {
-        unlink($pathGambarLama);
+    if ($uploadGambarBaru) {
+        $pathGambarLama = '../img/' . basename($data["gambarLama"]);
+        if (file_exists($pathGambarLama)) {
+            unlink($pathGambarLama);
+        }
     }
 
     $query = "UPDATE menu SET
