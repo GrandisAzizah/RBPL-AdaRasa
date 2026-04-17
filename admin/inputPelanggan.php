@@ -146,8 +146,8 @@ if (isset($_POST["submit"])) {
             <form action="" method="POST" enctype="multipart/form-data">
 
                 <!-- INPUT NAMA MENU -->
-                <label for="nama">Nama<br></label>
-                <input type="text" name="nama" id="nama" maxlength="30" required><br><br>
+                <label for="nama_pelanggan">Nama Pelanggan<br></label>
+                <input type="text" name="nama_pelanggan" id="nama_pelanggan" maxlength="30" required><br><br>
 
                 <!-- INPUT NO HP -->
                 <label for="no_hp">No HP</label>
@@ -157,8 +157,8 @@ if (isset($_POST["submit"])) {
                 <input type="text" name="alamat" id="alamat" required><br><br>
 
                 <!-- INPUT GAMBAR -->
-                <label for="profil-foto">Profil:<br></label>
-                <input type="file" name="profil-foto" id="profil-foto" required><br><br>
+                <label for="profil_foto">Profil:<br></label>
+                <input type="file" name="profil_foto" id="profil_foto" required><br><br>
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark">Kirim</button>
