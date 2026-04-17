@@ -20,7 +20,11 @@ require '../functions.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="pesanan.css">
+    <link rel="stylesheet" href="pesananAdmin.css">
+    <!-- CSS Tom Select -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+    <!-- JS Tom Select -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 </head>
 
 <style>
@@ -130,10 +134,17 @@ require '../functions.php';
 
 
                 <!-- INPUT PESANAN -->
-                <label for="nama_pesanan">Pesanan</label><br>
-                <select name="nama_pesanan" id="nama_pesanan">
-                    <option value="kg">kg</option>
-                </select><br>
+                <label for="nama_pesanan">Pesanan</label>
+                <select name="nama_pesanan" id="nama_pesanan" class="select2" style="width: 100%;" required>
+                    <?php
+                    $menu = query("SELECT * FROM menu ORDER BY nama_menu ASC");
+                    foreach ($menu as $row):
+                    ?>
+                        <option value="<?= $row['id_menu']; ?>">
+                            <?= $row['nama_menu']; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
                 <!-- INPUT JUMLAH -->
                 <label for="jumlah">Jumlah:<br></label>
@@ -171,3 +182,32 @@ require '../functions.php';
 </body>
 
 </html>
+
+<script>
+    // Tunggu DOM selesai loading
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inisialisasi Tom Select
+        const tomSelect = new TomSelect('#nama_pesanan', {
+            create: false,
+            sortField: 'text',
+            searchField: 'text',
+            placeholder: 'Pilih menu...',
+            allowEmptyOption: true,
+            render: {
+                option: function(data, escape) {
+                    if (data.disabled) return null;
+                    return '<div>' + escape(data.text) + '</div>';
+                },
+                item: function(data, escape) {
+                    if (data.disabled) return null;
+                    return '<div>' + escape(data.text) + '</div>';
+                }
+            }
+        });
+
+        setTimeout(function() {
+            tomSelect.clear();
+            tomSelect.setValue('');
+        }, 10);
+    });
+</script>
