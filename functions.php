@@ -322,10 +322,10 @@ function editPesanan($data)
 
 function upload_profil()
 {
-    $namaFile = $_FILES['profil-foto']['name'];
-    $ukuranFile = $_FILES['profil-foto']['size'];
-    $error = $_FILES['profil-foto']['error'];
-    $tmpName = $_FILES['profil-foto']['tmp_name'];
+    $namaFile = $_FILES['profil_foto']['name'];
+    $ukuranFile = $_FILES['profil_foto']['size'];
+    $error = $_FILES['profil_foto']['error'];
+    $tmpName = $_FILES['profil_foto']['tmp_name'];
 
     // cek apakah ada gambar yang diupload
     if ($error == 4) {
@@ -358,7 +358,7 @@ function upload_profil()
 function tambahPelanggan($data)
 {
     global $conn;
-    $nama = htmlspecialchars($data["nama"]);
+    $nama_pelanggan = htmlspecialchars($data["nama_pelanggan"]);
     $no_hp = htmlspecialchars($data["no_hp"]);
     $alamat = htmlspecialchars($data["alamat"]);
     // upload gambar
@@ -368,7 +368,7 @@ function tambahPelanggan($data)
     }
 
     $query = "INSERT INTO customer VALUES
-            (NULL, '$nama', '$no_hp', '$alamat','$profil_foto')
+            (NULL, '$nama_pelanggan', '$no_hp', '$alamat','$profil_foto')
     ";
 
     mysqli_query($conn, $query);
@@ -377,6 +377,58 @@ function tambahPelanggan($data)
     return mysqli_affected_rows($conn);
 }
 
-function editPelanggan($data) {}
+function editPelanggan($data)
+{
+    global $conn;
 
-function hapusPelanggan($data) {}
+    $id_pelanggan = $data["id_pelanggan"];
+    $nama_pelanggan = htmlspecialchars($data["nama_pelanggan"]);
+    $no_hp = htmlspecialchars($data["no_hp"]);
+    $alamat = htmlspecialchars($data['alamat']);
+
+    if ($_FILES['profil_foto']['error'] === 4) {
+        $profil_foto = $data["gambarLama"];
+    } else {
+        $profil_foto = upload_profil();
+        if (!$profil_foto) {
+            return false; // jika upload gagal, hentikan proses edit
+        }
+    }
+
+    $pathGambarLama = '../img/' . basename($data["gambarLama"]);
+    if (file_exists($pathGambarLama)) {
+        unlink($pathGambarLama);
+    }
+
+    $query = "UPDATE menu SET
+                nama_pelanggan = '$nama_pelanggan',
+                no_hp = '$no_hp',
+                alamat = '$alamat',
+                profil_foto = '$profil_foto'
+              WHERE id_pelanggan = $id_pelanggan";
+
+    mysqli_query($conn, $query);
+    return mysqli_affected_rows($conn);
+}
+
+function hapusPelanggan($id_pelanggan)
+{
+    global $conn;
+
+    // ambil path gambar
+    $result = mysqli_query($conn, "SELECT profil_foto FROM customer WHERE id_pelanggan = $id_pelanggan");
+    $row = mysqli_fetch_assoc($result);
+
+    // hapus file gambar dari folder
+    if ($row) {
+        $pathGambar = '../img/' . basename($row['profil_foto']);
+
+        if (file_exists($pathGambar)) {
+            unlink($pathGambar);
+        }
+    }
+
+    // hapus data menu dari database
+    mysqli_query($conn, "DELETE FROM customer WHERE id_pelanggan = $id_pelanggan");
+    return mysqli_affected_rows($conn);
+}
