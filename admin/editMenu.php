@@ -159,7 +159,7 @@ if (isset($_POST["submit"])) {
 
                 <!-- INPUT HARGA -->
                 <label for="harga-menu">Harga Menu:<br></label>
-                <input type="number" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" oninput="validasiHarga(this)"><br><br>
+                <input type="text" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" oninput="validasiHarga(this)" inputmode="numeric" pattern="[0-9]*"><br><br>
                 <small id="error-harga" style="color: red; display: none;">
                     Harga tidak valid. Harus dalam rentang 0 - 999999
                 </small>
@@ -181,16 +181,34 @@ if (isset($_POST["submit"])) {
 <script>
     function validasiHarga(input) {
         const error = document.getElementById('error-harga');
-        // batasi maksimal 6 digit
-        if (input.value.length > 6) {
-            input.value = input.value.slice(0, 6);
+
+        // Hapus semua karakter non-digit
+        let value = input.value.replace(/[^\d]/g, '');
+
+        // Batasi 6 digit
+        if (value.length > 6) {
+            value = value.slice(0, 6);
         }
 
-        // validasi range dan tampilkan pesan
-        if (input.value < 0 || input.value > 999999) {
+        // Hapus leading zeros
+        value = value.replace(/^0+/, '');
+        if (value === '') value = '0';
+
+        input.value = value;
+
+        const numericValue = parseInt(value, 10);
+        if (isNaN(numericValue) || numericValue < 0 || numericValue > 999999) {
             error.style.display = 'block';
         } else {
             error.style.display = 'none';
         }
     }
+
+    // Tambahkan event listener untuk form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        let hargaInput = document.getElementById('harga-menu');
+        let hargaValue = hargaInput.value.replace(/[^\d]/g, '');
+        hargaInput.value = hargaValue;
+        console.log('Nilai yang dikirim:', hargaValue); // Cek di console
+    });
 </script>
