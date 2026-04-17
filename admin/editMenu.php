@@ -159,7 +159,10 @@ if (isset($_POST["submit"])) {
 
                 <!-- INPUT HARGA -->
                 <label for="harga-menu">Harga Menu:<br></label>
-                <input type="number" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" max="999999"><br><br>
+                <input type="number" name="harga-menu" id="harga-menu" value="<?= ($m["harga_menu"]); ?>" min="0" oninput="validasiHarga(this)"><br><br>
+                <small id="error-harga" style="color: red; display: none;">
+                    Harga tidak valid. Harus dalam rentang 0 - 999999
+                </small>
 
                 <!-- INPUT GAMBAR -->
                 <label for="gambar-menu">Gambar:<br></label>
@@ -176,9 +179,18 @@ if (isset($_POST["submit"])) {
 </html>
 
 <script>
-    document.getElementById('harga-menu').addEventListener('input', function() {
-        if (this.value > 999999) {
-            this.value = this.value.slice(0, -1); // hapus karakter terakhir
+    function validasiHarga(input) {
+        const error = document.getElementById('error-harga');
+        // batasi maksimal 6 digit
+        if (input.value.length > 6) {
+            input.value = input.value.slice(0, 6);
         }
-    });
+
+        // validasi range dan tampilkan pesan
+        if (input.value < 0 || input.value > 999999) {
+            error.style.display = 'block';
+        } else {
+            error.style.display = 'none';
+        }
+    }
 </script>
