@@ -8,7 +8,7 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
-$pelanggan = query("SELECT * FROM customer ORDER BY nama ASC");
+$pelanggan = query("SELECT * FROM customer");
 ?>
 
 <!DOCTYPE html>
@@ -69,20 +69,22 @@ $pelanggan = query("SELECT * FROM customer ORDER BY nama ASC");
         <?php else : ?>
             <?php foreach ($pelanggan as $row) : ?>
                 <div class="card-order">
-                    <div class="row g-0">
-                        <!-- Isi -->
-                        <div class="col-auto">
-                            <div class="card-body">
-                                <h5 class="card-title"><?= $row['nama'] ?></h5>
-                                <p class="card-text"><?= $row['alamat'] ?></p>
+                    <a href="showPelanggan.php?id_pelanggan=<?= $row['id_pelanggan'] ?>">
+                        <div class="row g-0">
+                            <!-- Isi -->
+                            <div class="col-auto">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= $row['nama_pelanggan'] ?></h5>
+                                    <p class="card-text"><?= $row['alamat'] ?></p>
+                                </div>
+                            </div>
+
+                            <!-- Gambar -->
+                            <div class="order-img col">
+                                <img src="<?= $row['profil_foto'] ?>" class="" alt="...">
                             </div>
                         </div>
-
-                        <!-- Gambar -->
-                        <div class="order-img col">
-                            <img src="<?= $row['profil_foto'] ?>" class="" alt="...">
-                        </div>
-                    </div>
+                    </a>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
