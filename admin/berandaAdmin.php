@@ -16,7 +16,7 @@ $result = mysqli_query($conn, $query);
 $row = mysqli_fetch_assoc($result);
 $total_pesanan = $row['total'];
 
-$pesan = "Hari ini ada $total_pesanan pesanan masuk.";
+$pesan = "Terdapat $total_pesanan pesanan hari ini.";
 $tipe = 'info';
 ?>
 
@@ -55,6 +55,16 @@ $tipe = 'info';
     <p>Halo, ADMIN!</p>
 
     <div class="container-main">
+        <?php if ($pesan): ?>
+            <a href="pesanan.php" style="color: inherit;">
+                <div class="mt-3 mb-3 text-center alert alert- <?= $tipe ?> alert-dismissible fade show" role="alert">
+                    <div class="col">
+                        <strong>Informasi</strong><br>
+                        <?= $pesan ?>
+                    </div>
+                </div>
+            </a>
+        <?php endif; ?>
 
         <div class="container-button">
             <div class="menu-item">
@@ -105,17 +115,6 @@ $tipe = 'info';
                 <span class="menu-label">Pengaturan</span>
             </div>
         </div>
-
-        <?php if ($pesan): ?>
-            <a href="pesanan.php" style="color: inherit;">
-                <div class="mt-3 mb-3 text-center alert alert- <?= $tipe ?> alert-dismissible fade show" role="alert">
-                    <div class="col">
-                        <strong>Informasi</strong><br>
-                        <?= $pesan ?>
-                    </div>
-                </div>
-            </a>
-        <?php endif; ?>
 
         <h5>Pesanan Masuk</h5>
         <!-- looping ga si di sini tuh -->
