@@ -128,6 +128,26 @@ if (isset($_POST["submit"])) {
         border-color: #B3B3B3 !important;
         box-shadow: none !important;
     }
+
+    select {
+        margin-bottom: 8px;
+        width: 100%;
+        padding: 4px 30px 4px 8px;
+        /* kanan lebih lebar buat arrow */
+        border: 1px solid #B3B3B3;
+        border-radius: 4px;
+        background-color: #ffffff;
+        appearance: none;
+        /* hapus 'v' */
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6L8 10L12 6' stroke='%231E1E1E' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        /* arrow tidak mepet */
+        cursor: pointer;
+        font-size: 13px;
+
+    }
 </style>
 
 <body>
