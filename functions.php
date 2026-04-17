@@ -113,6 +113,7 @@ function tambah($data)
     return mysqli_affected_rows($conn);
 }
 
+// unggah gambar menu
 function upload()
 {
     $namaFile = $_FILES['gambar-menu']['name'];
@@ -183,21 +184,28 @@ function editMenu($data)
 
     $id_menu = $data["id_menu"];
     $nama_menu = htmlspecialchars($data["nama-menu"]);
-    $harga = htmlspecialchars($data["harga-menu"]);
+    $harga = (int)($data["harga-menu"]);
+    $hargaRaw = $data["harga-menu"];
 
-    // cek apakah user pilih gambar baru atau tidak
+    if (strlen($hargaRaw) > 6) {
+        return false;
+    }
+
+    $harga = (int)$hargaRaw;
+
+    if ($harga < 0 || $harga > 999999) {
+        return false;
+    }
+
     if ($_FILES['gambar-menu']['error'] === 4) {
-        // user tidak pilih gambar baru, gunakan gambar lama
         $gambar_menu = $data["gambarLama"];
     } else {
-        // user pilih gambar baru, upload gambar baru
         $gambar_menu = upload();
         if (!$gambar_menu) {
-            return false; // jika upload gagal, hentikan proses edit
+            return false;
         }
     }
 
-    // override gambar lama dengan gambar baru
     $pathGambarLama = '../img/' . basename($data["gambarLama"]);
     if (file_exists($pathGambarLama)) {
         unlink($pathGambarLama);
