@@ -148,7 +148,8 @@ require '../functions.php';
 
                 <!-- INPUT JUMLAH -->
                 <label for="jumlah">Jumlah:<br></label>
-                <input type="number" name="jumlah" id="jumlah" min="0" max="100" required>
+                <input type="number" name="jumlah" id="jumlah" min="0" max="100" step="1" required
+                    oninput="this.value = Math.floor(this.value); if(this.value < 0) this.value = 0; if(this.value > 500) this.value = 500;">
 
                 <label>Tanggal Pemesanan</label>
                 <div class="date-group">
@@ -184,9 +185,7 @@ require '../functions.php';
 </html>
 
 <script>
-    // Tunggu DOM selesai loading
     document.addEventListener('DOMContentLoaded', function() {
-        // Inisialisasi Tom Select
         const tomSelect = new TomSelect('#nama_pesanan', {
             create: false,
             sortField: 'text',
@@ -209,5 +208,11 @@ require '../functions.php';
             tomSelect.clear();
             tomSelect.setValue('');
         }, 10);
+    });
+
+    document.getElementById('jumlah').addEventListener('keyup', function(e) {
+        if (this.value.includes('.')) {
+            this.value = Math.floor(this.value);
+        }
     });
 </script>
