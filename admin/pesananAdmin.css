@@ -265,3 +265,9 @@ textarea:focus {
     border-color: #B3B3B3 !important;
     box-shadow: none !important;
 }
+
+.tambah-bahan-baru {
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+}
