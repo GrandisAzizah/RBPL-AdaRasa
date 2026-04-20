@@ -163,6 +163,10 @@ if (isset($_POST["submit"])) {
                     </div>
                 </div>
 
+                <div class="tambah-bahan-baru">
+                    <p><a href="tambahBahanBaru.php">Tambah</a></p>
+                </div>
+
                 <div class="packing-takaran-group">
                     <div class="packing-takaran-item">
                         <label for="packing">Packing</label>
