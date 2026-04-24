@@ -1,21 +1,48 @@
 <?php
 session_start();
-// user belum login
+
 if (!isset($_SESSION["login"])) {
     header("location: login.php");
     exit;
 }
 
 require '../functions.php';
+
+$jumlah = $_SESSION['pesanan']['jumlah'] ?? 1;
+$id_menu = $_SESSION['pesanan']['fk_menu'] ?? 0;
+$bahan = query("SELECT * FROM bahan_baku WHERE fk_bahan_menu = $id_menu");
+
 $pesan = '';
 $tipe = '';
+
 if (isset($_POST["submit"])) {
-    $hasil = tambah($_POST);
-    if ($hasil > 0) {
-        $pesan = 'Data berhasil ditambahkan!';
+    $packing = $_POST['packing'];
+    $bahan_dipilih = $_POST['bahan'] ?? [];
+
+    $dataPesanan = [
+        'fk_customer' => $_SESSION['pesanan']['fk_customer'],
+        'fk_menu' => $_SESSION['pesanan']['fk_menu'],
+        'fk_pesanan_varian' => $_SESSION['pesanan']['fk_pesanan_varian'],
+        'jumlah' => $_SESSION['pesanan']['jumlah'],
+        'catatan' => $_SESSION['pesanan']['catatan'],
+        'tanggal_antar' => $_SESSION['pesanan']['tanggal_antar'],
+        'metode' => $_SESSION['pesanan']['metode']
+    ];
+
+    // Simpan ke tabel pesanan
+    $id_pesanan = tambahPesanan($dataPesanan);
+
+    if ($id_pesanan > 0) {
+        // Simpan detail bahan dan packing
+        simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $_SESSION['pesanan']['jumlah']);
+
+        $pesan = 'Pesanan berhasil disimpan!';
         $tipe = 'success';
+
+        unset($_SESSION['pesanan']);
+        echo "<meta http-equiv='refresh' content='2;url=pesanan.php'>";
     } else {
-        $pesan = 'Data gagal ditambahkan!';
+        $pesan = 'Pesanan gagal disimpan!';
         $tipe = 'danger';
     }
 }
@@ -142,25 +169,24 @@ if (isset($_POST["submit"])) {
         <div class="container">
             <form action="" method="POST">
                 <!-- INPUT JUMLAH -->
-                <label for="jumlah">Jumlah:<br></label>
-                <input type="number" name="jumlah" id="jumlah" min="0" max="100" required>
+                <label for="jumlah">Jumlah:</label>
+                <input type="number" name="jumlah" id="jumlah" value="<?= $jumlah ?>" readonly>
 
                 <label>Bahan yang Diperlukan</label>
                 <div class="bahan-list">
-                    <div class="bahan-item">
-                        <input type="checkbox" name="bahan[]" value="1" id="bahan1">
-                        <label for="bahan1" class="bahan-label">
-                            <span class="bahan-nama">Nama Bahan</span>
-                            <span class="bahan-jumlah">Jumlah</span>
-                        </label>
-                    </div>
-                    <div class="bahan-item">
-                        <input type="checkbox" name="bahan[]" value="2" id="bahan2">
-                        <label for="bahan2" class="bahan-label">
-                            <span class="bahan-nama">Nama Bahan</span>
-                            <span class="bahan-jumlah">Jumlah</span>
-                        </label>
-                    </div>
+                    <?php foreach ($bahan as $i => $b):
+                        $jumlah_bahan = $b['jumlah_default'] * $jumlah;
+                    ?>
+                        <div class="bahan-item">
+                            <input type="checkbox" name="bahan[]" value="<?= $b['id_bahan'] ?>" id="bahan<?= $i ?>" checked>
+                            <label for="bahan<?= $i ?>" class="bahan-label">
+                                <span class="bahan-nama"><?= $b['nama_bahan'] ?></span>
+                                <span class="bahan-jumlah" id="jumlah-bahan-<?= $i ?>">
+                                    <?= $jumlah_bahan ?> <?= $b['satuan'] ?>
+                                </span>
+                            </label>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
 
                 <div class="tambah-bahan-baru">
@@ -171,27 +197,21 @@ if (isset($_POST["submit"])) {
                     <div class="packing-takaran-item">
                         <label for="packing">Packing</label>
                         <select name="packing" id="packing">
+                            <option value="Box">Box</option>
+                            <option value="Mika">Mika</option>
+                            <option value="Kertas Minyak">Kertas Minyak</option>
+                            <option value="Plastik">Plastik</option>
                             <option value="Toples Kotak">Toples Kotak</option>
                             <option value="Toples Lingkaran">Toples Lingkaran</option>
                             <option value="Toples Hati">Toples Hati</option>
                             <option value="Toples Tabung">Toples Tabung</option>
                         </select>
                     </div>
-                    <div class="packing-takaran-item">
-                        <label for="takaran">Takaran</label>
-                        <select name="takaran" id="takaran">
-                            <option value="500 gram">500 gram</option>
-                            <option value="800 gram">800 gram</option>
-                            <option value="Dada ayam">Dada ayam</option>
-                            <option value="Diameter 30 cm">Diameter 30 cm</option>
-                        </select>
-                    </div>
                 </div>
+                <button type="submit" value="Kirim" name="submit" class="btn btn-outline-dark input-next">Save</button>
             </form>
         </div>
 
-        <!-- SUBMIT BUTTON -->
-        <button type="submit" value="Kirim" name="submit" class="btn btn-outline-dark input-next">Save</button>
     </div>
 </body>
 
