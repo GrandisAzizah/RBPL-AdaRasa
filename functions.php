@@ -89,6 +89,7 @@ function ganti_usn($data)
     return mysqli_stmt_affected_rows($stmt);
 }
 
+// untuk menu
 function tambah($data)
 {
     global $conn;
@@ -232,7 +233,7 @@ function tambahBahanBaku($data)
     global $conn;
     $fk_menu = htmlspecialchars($data['fk_menu']);
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
-    $jumlah_default = htmlspecialchars($data['jumlah_default']);
+    $jumlah_default = floatval(str_replace(',', '.', $data['jumlah_default']));
     $satuan = htmlspecialchars($data['satuan']);
 
     $query = "INSERT INTO bahan_baku VALUES
@@ -271,37 +272,166 @@ function editBahan($data)
     return mysqli_affected_rows($conn);
 }
 
+// function tambahPesanan($data)
+// {
+//     global $conn;
+//     $fk_customer = (int)$data['fk_customer'];
+//     $menu_fk = htmlspecialchars($data['menu_fk']);
+//     $jumlah = htmlspecialchars($data['jumlah']);
+//     $takaran = htmlspecialchars($data['takaran']);
+//     $packing = htmlspecialchars($data['packing']);
+//     // $harga_menu = htmlspecialchars($data['harga_menu']);
+//     // $harga_total = htmlspecialchars($data['harga_menu']) * htmlspecialchars($data['jumlah']);
+//     $status_pemesanan = htmlspecialchars($data['status_pemesanan']);
+//     $tanggal_pesan = htmlspecialchars($data['tanggal_pesan']);
+//     $catatan_khusus_pemesanan = htmlspecialchars($data['catatan_khusus_pemesanan']);
+//     $tanggal_antar = htmlspecialchars($data['tanggal_antar']);
+//     $metode = htmlspecialchars($data['metode_pengantaran']);
+
+//     if ($metode === 'Kurir Catering') {
+//         $status_pemesanan = 'Diterima';
+//     } elseif ($metode === 'Ojek Online') {
+//         $status_pemesanan = 'Selesai';
+//     }
+
+//     $query = "INSERT INTO pesanan VALUES
+//             (NULL, $fk_customer, '$jumlah','$harga_total', $harga_menu','$status_pemesanan',
+//             '$tanggal_pesan','$catatan_khusus_pemesanan',
+//             '$tanggal_antar', '$menu_fk')
+//     ";
+
+//     mysqli_query($conn, $query);
+
+//     // jika gagal -1, jika berhasil 1
+//     return mysqli_affected_rows($conn);
+// }
+
+function harga_menu($fk_menu, $fk_pesanan_varian)
+{
+    global $conn;
+
+    //ambil harga menu dasar
+    $queryMenu = "SELECT harga_menu FROM menu WHERE id_menu = $fk_menu";
+    $resultMenu = mysqli_query($conn, $queryMenu);
+    $menu = mysqli_fetch_assoc($resultMenu);
+    $harga_dasar = $menu['harga_menu'] ?? 0;
+
+    //ambil harga varian
+    $queryVarian = "SELECT harga_varian FROM menu_varian WHERE id_varian = $fk_pesanan_varian";
+    $resultVarian = mysqli_query($conn, $queryVarian);
+    $varian = mysqli_fetch_assoc($resultVarian);
+    $harga_varian = $varian['harga_varian'] ?? 0;
+
+    // total harga menu dengan varian
+    $harga_menu = $harga_dasar + $harga_varian;
+
+    return $harga_menu;
+}
+
 function tambahPesanan($data)
 {
     global $conn;
-    $nama_pelanggan = htmlspecialchars($data['nama_pelanggan']);
-    $menu_fk = htmlspecialchars($data['menu_fk']);
-    $porsi = htmlspecialchars($data['porsi']);
-    $takaran = htmlspecialchars($data['takaran']);
-    $packing = htmlspecialchars($data['packing']);
-    $harga_menu = htmlspecialchars($data['harga_menu']);
-    $harga_total = htmlspecialchars($data['harga_menu']) * htmlspecialchars($data['porsi']);
-    $status_pemesanan = htmlspecialchars($data['status_pemesanan']);
-    $tanggal_pesan = htmlspecialchars($data['tanggal_pesan']);
-    $catatan_khusus_pemesanan = htmlspecialchars($data['catatan_khusus_pemesanan']);
-    $tanggal_antar = htmlspecialchars($data['tanggal_antar']);
 
-    $query = "INSERT INTO pesanan VALUES
-            (NULL, , '$porsi','$harga_total', $harga_menu','$status_pemesanan',
-            '$tanggal_pesan','$catatan_khusus_pemesanan',
-            '$tanggal_antar', '$menu_fk')
-    ";
+    $fk_customer = (int)$data['fk_customer'];
+    $fk_pesanan_varian = (int)$data['fk_pesanan_varian'];
+    $jumlah = (int)$data['jumlah'];
+    $catatan = mysqli_real_escape_string($conn, $data['catatan']);
+    $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
+    $metode = mysqli_real_escape_string($conn, $data['metode']);
+
+    // Hitung harga total
+    $fk_menu = (int)$data['fk_menu'];
+    $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
+    $harga_total = $harga_satuan * $jumlah;
+
+    // Tentukan status
+    $status = ($metode == 'Kurir Catering') ? 'Diterima' : 'Selesai';
+
+    // Query yang benar
+    $query = "INSERT INTO pesanan (
+        jumlah, 
+        harga_total, 
+        status_pemesanan, 
+        tanggal_pesan, 
+        catatan_khusus_pemesanan, 
+        metode_pengantaran, 
+        tanggal_antar,
+        fk_pesanan_varian, 
+        fk_pesanan_customer
+    ) VALUES (
+        '$jumlah',
+        '$harga_total',
+        '$status',
+        NOW(),
+        '$catatan',
+        '$metode',
+        '$tanggal_antar',
+        '$fk_pesanan_varian',
+        '$fk_customer'
+    )";
 
     mysqli_query($conn, $query);
 
-    // jika gagal -1, jika berhasil 1
-    return mysqli_affected_rows($conn);
+    if (mysqli_error($conn)) {
+        echo "Error: " . mysqli_error($conn);
+        return 0;
+    }
+
+    return mysqli_insert_id($conn);
 }
 
 function hapusPesanan($id_pesanan)
 {
     global $conn;
     mysqli_query($conn, "DELETE FROM pesanan WHERE id_pesanan = $id_pesanan");
+    return mysqli_affected_rows($conn);
+}
+
+function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesanan)
+{
+    global $conn;
+
+    foreach ($bahan_dipilih as $id_bahan) {
+        // Ambil data bahan dari bahan_baku
+        $result = mysqli_query($conn, "SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
+        $bahan = mysqli_fetch_assoc($result);
+
+        if ($bahan) {
+            $jumlah_dipakai = $bahan['jumlah_default'] * $jumlah_pesanan;
+
+            // Cari id_stok dari tabel stok_bahan berdasarkan nama bahan
+            $queryStok = "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '{$bahan['nama_bahan']}' LIMIT 1";
+            $resultStok = mysqli_query($conn, $queryStok);
+            $stok = mysqli_fetch_assoc($resultStok);
+
+            if (!$stok) {
+                continue;
+            }
+
+            $id_stok = $stok['id_stok'];
+
+            $query = "INSERT INTO detail_pesanan_bahan (
+            fk_detail_pesanan, 
+            fk_detail_stok, 
+            fk_bahan_detail,
+            jumlah_dipakai,
+            packing
+            ) VALUES (
+            '$id_pesanan', 
+            '$id_stok',      
+            '$id_bahan',
+            '$jumlah_dipakai',
+            '$packing')";
+
+            mysqli_query($conn, $query);
+
+            if (mysqli_error($conn)) {
+                echo "Error: " . mysqli_error($conn);
+                return 0;
+            }
+        }
+    }
+
     return mysqli_affected_rows($conn);
 }
 
