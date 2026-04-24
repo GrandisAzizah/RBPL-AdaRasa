@@ -17,7 +17,11 @@ body {
 .container-bahan-baku {
     display: flex;
     justify-content: center;
-    padding: 0 20px;
+    padding: 0 10px !important;
+}
+
+.form-check-input {
+    margin-top: 0 !important;
 }
 
 h5 {
@@ -122,9 +126,9 @@ p {
 }
 
 input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    margin: 20px 20px;
+     width: 16px;
+    height: 16px;
+    margin: 0 !important;
     border-color: #6750A4 !important;
 }
 
