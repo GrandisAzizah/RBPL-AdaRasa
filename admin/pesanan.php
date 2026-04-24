@@ -8,7 +8,17 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
-$pesanan = query("SELECT * FROM pesanan ORDER BY tanggal_pesan ASC");
+$pesanan = query("SELECT 
+        p.*,
+        c.nama_pelanggan,
+        mv.takaran,
+        m.nama_menu,
+        m.gambar_menu
+    FROM pesanan p
+    LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+    LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+    LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
+    ORDER BY p.tanggal_pesan ASC");
 ?>
 
 <!DOCTYPE html>
@@ -72,14 +82,14 @@ $pesanan = query("SELECT * FROM pesanan ORDER BY tanggal_pesan ASC");
                         <!-- Isi -->
                         <div class="col-auto">
                             <div class="card-body">
-                                <h5 class="card-title"><?= ['nama_menu'] ?></h5>
-                                <p class="card-text"><?= ['takaran'] ?></p>
+                                <h5 class="card-title"><?= $row['nama_menu'] ?></h5>
+                                <p class="card-text"><?= $row['takaran'] ?></p>
                             </div>
                         </div>
 
                         <!-- Gambar -->
                         <div class="order-img col">
-                            <img src="../rbpl nasi kuning.png" class="" alt="...">
+                            <img src="<?= $row['gambar_menu'] ?>" class="" alt="...">
                         </div>
                     </div>
                 </div>
