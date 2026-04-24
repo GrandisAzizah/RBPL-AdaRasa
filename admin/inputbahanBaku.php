@@ -193,15 +193,24 @@ if (isset($_POST["submit"])) {
 
                 <!-- INPUT JUMLAH -->
                 <label for="jumlah_default">Jumlah<br></label>
-                <input type="number" name="jumlah_default" id="jumlah_default" min="0" max="999999" step="0.01" required><br><br>
+                <input type="text" name="jumlah_default" id="jumlah_default" min="0" max="999999" step="0.01" required><br><br>
 
                 <!-- INPUT SATUAN -->
                 <label for="satuan">Satuan</label><br>
                 <select name="satuan" id="satuan">
-                    <option value="kg">kg</option>
-                    <option value="gram">gram</option>
+                    <option value="buah">buah</option>
                     <option value="bungkus">bungkus</option>
+                    <option value="gelas">gelas</option>
+                    <option value="gram">gram</option>
+                    <option value="kg">kg</option>
+                    <option value="lembar">lembar</option>
+                    <option value="liter">liter</option>
+                    <option value="ml">ml</option>
+                    <option value="pcs">pcs</option>
                     <option value="renteng">renteng</option>
+                    <option value="sachet">sachet</option>
+                    <option value="sendok makan">sendok makan</option>
+                    <option value="sendok teh">sendok teh</option>
                 </select>
 
                 <!-- SUBMIT BUTTON -->
