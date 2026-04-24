@@ -127,10 +127,19 @@ require '../functions.php';
         </div>
 
         <div class="container">
-            <form action="" method="POST">
+            <form id="form-pesanan" method="POST">
                 <!-- INPUT NAMA MENU -->
                 <label for="nama_pelanggan">Nama Pelanggan</label>
-                <input type="text" name="nama_pelanggan" id="nama_pelanggan" maxlength="30" required>
+                <select name="nama_pelanggan" id="nama_pelanggan" maxlength="30" required>
+                    <?php
+                    $pelanggan = query("SELECT * FROM customer ORDER BY nama_pelanggan ASC");
+                    foreach ($pelanggan as $row):
+                    ?>
+                        <option value="<?= $row['id_pelanggan']; ?>">
+                            <?= $row['nama_pelanggan']; ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
 
                 <!-- INPUT PESANAN -->
@@ -151,11 +160,23 @@ require '../functions.php';
                 <input type="number" name="jumlah" id="jumlah" min="0" max="100" step="1" required
                     oninput="this.value = Math.floor(this.value); if(this.value < 0) this.value = 0; if(this.value > 500) this.value = 500;">
 
+                <div class="packing-takaran-item">
+                    <label for="takaran">Takaran</label>
+                    <select name="takaran" id="takaran">
+                        <?php
+                        $varian = query("SELECT * FROM menu_varian ORDER BY id_varian ASC");
+                        foreach ($varian as $row):
+                        ?>
+                            <option value="<?= $row['id_varian']; ?>">
+                                <?= $row['takaran']; ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <label>Tanggal Pemesanan</label>
-                <div class="date-group">
-                    <input type="number" name="tanggal_pesan_day" placeholder="DD" min="1" max="31" required>
-                    <input type="number" name="tanggal_pesan_month" placeholder="MM" min="1" max="12" required>
-                    <input type="number" name="tanggal_pesan_year" placeholder="YYYY" min="2000" max="2100" required>
+                <div class="card card-tanggal-pesan">
+                    <p id="jam-sekarang" style="padding: 5px; font-size: 13px; color: #000000;"></p>
                 </div>
 
                 <label for="metode_pengantaran">Metode Pengantaran</label>
@@ -165,20 +186,13 @@ require '../functions.php';
                 </select><br>
 
                 <label>Tanggal Pengiriman</label>
-                <div class="date-group">
-                    <input type="number" name="tanggal_antar_day" placeholder="DD" min="1" max="31" required>
-                    <input type="number" name="tanggal_antar_month" placeholder="MM" min="1" max="12" required>
-                    <input type="number" name="tanggal_antar_year" placeholder="YYYY" min="2000" max="2100" required>
-                </div>
+                <input type="datetime-local" name="tanggal_antar" id="tanggal_antar" step="60">
                 <label for="catatan_khusus_pemesanan" class="form-label">Catatan Khusus Pemesanan</label>
-                <textarea type="text" name="catatan_khusus_pemesanan" id="catatan_khusus_pemesanan" maxlength="255" required></textarea>
-            </form>
+                <textarea type="text" name="catatan_khusus_pemesanan" id="catatan_khusus_pemesanan" maxlength="255"></textarea>
         </div>
-
         <!-- SUBMIT BUTTON -->
-        <a href="inputBahanPesan.php">
-            <button type="submit" value="Kirim" name="submit" class="btn btn-outline-dark input-next">Next</button>
-        </a>
+        <button type="button" onclick="validasiDanNext()" class="btn btn-outline-dark input-next">Next</button>
+        </form>
     </div>
 </body>
 
@@ -192,6 +206,9 @@ require '../functions.php';
             searchField: 'text',
             placeholder: 'Pilih menu...',
             allowEmptyOption: true,
+            onChange: function(value) {
+                updateTakaran(value);
+            },
             render: {
                 option: function(data, escape) {
                     if (data.disabled) return null;
@@ -210,9 +227,65 @@ require '../functions.php';
         }, 10);
     });
 
+    function updateJam() {
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const yyyy = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('jam-sekarang').textContent = `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+    }
+
+    updateJam();
+    setInterval(updateJam, 1000);
+
     document.getElementById('jumlah').addEventListener('keyup', function(e) {
         if (this.value.includes('.')) {
             this.value = Math.floor(this.value);
         }
     });
+
+    function validasiDanNext() {
+        const form = document.getElementById('form-pesanan');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        form.action = 'simpanSession.php';
+        form.submit();
+    }
+
+    // Simpan semua varian dari PHP ke JS
+    const semuaVarian = <?= json_encode(
+                            query("SELECT * FROM menu_varian ORDER BY id_varian ASC")
+                        ) ?>;
+
+    function updateTakaran(id_menu) {
+        const select = document.getElementById('takaran');
+        select.innerHTML = ''; // kosongkan dulu
+
+        const filtered = semuaVarian.filter(v => v.fk_menu_varian == id_menu);
+
+        if (filtered.length === 0) {
+            select.innerHTML = '<option value="">Tidak ada takaran</option>';
+            return;
+        }
+
+        filtered.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id_varian;
+            opt.textContent = v.takaran;
+            select.appendChild(opt);
+        });
+    }
+
+    // Jalankan saat halaman load dan saat menu berubah
+    document.getElementById('nama_pesanan').addEventListener('change', function() {
+        updateTakaran(this.value);
+    });
+
+    // Trigger saat pertama load
+    updateTakaran(document.getElementById('nama_pesanan').value);
 </script>
