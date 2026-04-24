@@ -195,10 +195,19 @@ if (isset($_POST["submit"])) {
                 <!-- INPUT SATUAN -->
                 <label for="satuan">Satuan</label><br>
                 <select name="satuan" id="satuan">
-                    <option value="kg" <?= $bahan['satuan'] == 'kg' ? 'selected' : '' ?>>kg</option>
-                    <option value="gram" <?= $bahan['satuan'] == 'gram' ? 'selected' : '' ?>>gram</option>
+                    <option value="buah" <?= $bahan['satuan'] == 'buah' ? 'selected' : '' ?>>buah</option>
                     <option value="bungkus" <?= $bahan['satuan'] == 'bungkus' ? 'selected' : '' ?>>bungkus</option>
+                    <option value="gelas" <?= $bahan['satuan'] == 'gelas' ? 'selected' : '' ?>>gelas</option>
+                    <option value="gram" <?= $bahan['satuan'] == 'gram' ? 'selected' : '' ?>>gram</option>
+                    <option value="kg" <?= $bahan['satuan'] == 'kg' ? 'selected' : '' ?>>kg</option>
+                    <option value="lembar" <?= $bahan['satuan'] == 'lembar' ? 'selected' : '' ?>>lembar</option>
+                    <option value="liter" <?= $bahan['satuan'] == 'liter' ? 'selected' : '' ?>>liter</option>
+                    <option value="ml" <?= $bahan['satuan'] == 'ml' ? 'selected' : '' ?>>ml</option>
+                    <option value="pcs" <?= $bahan['satuan'] == 'pcs' ? 'selected' : '' ?>>pcs</option>
                     <option value="renteng" <?= $bahan['satuan'] == 'renteng' ? 'selected' : '' ?>>renteng</option>
+                    <option value="sachet" <?= $bahan['satuan'] == 'sachet' ? 'selected' : '' ?>>sachet</option>
+                    <option value="sendok makan" <?= $bahan['satuan'] == 'sendok makan' ? 'selected' : '' ?>>sendok makan</option>
+                    <option value="sendok teh" <?= $bahan['satuan'] == 'sendok teh' ? 'selected' : '' ?>>sendok teh</option>
                 </select>
 
                 <!-- SUBMIT BUTTON -->
