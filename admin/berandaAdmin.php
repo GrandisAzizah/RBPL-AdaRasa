@@ -8,6 +8,25 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
+$pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
+m.nama_menu, m.gambar_menu FROM pesanan p 
+LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
+ORDER BY p.tanggal_pesan DESC");
+
+$bahan_perlu_beli = query("SELECT 
+    bb.nama_bahan,
+    bb.satuan,
+    SUM(dpb.jumlah_dipakai) as total_butuh,
+    COALESCE(sb.stok_tersedia, 0) as stok_ada,
+    (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia, 0)) as perlu_beli
+FROM detail_pesanan_bahan dpb
+JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
+LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
+GROUP BY bb.nama_bahan, bb.satuan, sb.stok_tersedia
+HAVING total_butuh > COALESCE(sb.stok_tersedia, 0)");
+
 // alert
 $tanggal_hari_ini = date('Y-m-d');
 
@@ -117,50 +136,61 @@ $tipe = 'info';
         </div>
 
         <h5>Pesanan Masuk</h5>
-        <!-- looping ga si di sini tuh -->
-        <div class="container-order">
-            <div class="order-data card mb-3">
-                <div class="row g-0">
-                    <!-- Gambar -->
-                    <div class="col-auto">
-                        <img src="../rbpl-nasi-kuning.png" class="order-img" alt="...">
-                    </div>
 
-                    <!-- Nama Pemesan dan detail lainnya -->
-                    <div class="col">
-                        <div class="card-body">
-                            <p class="card-title">Nama Pemesan-Pesanan</p>
-                            <p class="card-detail">Porsi</p>
+        <?php if (empty($pesanan_terbaru)): ?>
+            <p class="text-muted" style="font-size: 16px;">Belum ada pesanan</p>
+        <?php else: ?>
+            <?php foreach ($pesanan_terbaru as $p): ?>
+                <div class="container-order">
+                    <div class="order-data card mb-3">
+                        <div class="row g-0">
+                            <!-- Gambar -->
+                            <div class="col-auto">
+                                <img src="<?= $p['gambar_menu'] ?>" class="order-img" alt="...">
+                            </div>
+
+                            <!-- Detail -->
+                            <div class="col">
+                                <div class="card-body">
+                                    <p class="card-title">
+                                        <?= $p['nama_pelanggan'] ?> - <?= $p['nama_menu'] ?>
+                                    </p>
+                                    <p class="card-detail"><?= $p['takaran'] ?></p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <button type="button" class="load-more-button" data-bs-toggle="modal" data-bs-target="">
-            <span> More</span>
-            <svg width="10" height="10" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M0 0L5 5L10 0H0Z" fill="black" />
-            </svg>
-        </button>
+            <?php endforeach; ?>
+            <button type="button" class="load-more-button" data-bs-toggle="modal" data-bs-target="">
+                <span> More</span>
+                <svg width="10" height="10" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0 0L5 5L10 0H0Z" fill="black" />
+                </svg>
+            </button>
+        <?php endif; ?>
 
         <h5>Bahan Baku</h5>
-        <div class="container-bahan-baku">
-            <div class="order-data card mb-3">
-                <div class="row g-0">
-                    <!-- Nama Pemesan dan detail lainnya -->
-                    <div class="col">
-                        <div class="card-body">
-                            <p class="card-title">Bahan Baku</p>
+        <?php if (empty($bahan_perlu_beli)): ?>
+            <p class="text-muted" style="font-size: 14px;">
+                Belum ada bahan baku yang perlu dibeli
+            </p>
+        <?php else: ?>
+            <div class="container-bahan-baku">
+                <div class="card">
+                    <?php foreach ($bahan_perlu_beli as $i => $b): ?>
+                        <div class="d-flex justify-content-between align-items-center px-3 py-1">
+                            <p class="mb-0" style="font-size: 13px;">
+                                <?= $b['nama_bahan'] ?> - Perlu beli: <?= $b['perlu_beli'] ?> <?= $b['satuan'] ?>
+                            </p>
+                            <input type="checkbox" class="form-check-input flex-shrink-0 ms-2">
                         </div>
-                    </div>
-                    <div class="col-auto">
-                        <input type="checkbox" class="form-check-input" id="exampleCheck1">
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
-        </div>
+        <?php endif; ?>
     </div>
+
 </body>
 
 </html>
