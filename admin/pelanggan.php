@@ -21,7 +21,7 @@ $pelanggan = query("SELECT * FROM customer");
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="pesanan.css">
+    <link rel="stylesheet" href="pesananAdmin.css">
 </head>
 
 <body>
@@ -70,18 +70,18 @@ $pelanggan = query("SELECT * FROM customer");
             <?php foreach ($pelanggan as $row) : ?>
                 <div class="card-order">
                     <a href="showPelanggan.php?id_pelanggan=<?= $row['id_pelanggan'] ?>">
-                        <div class="row g-0">
+                        <div class="row g-0" style="display: flex; align-items: center;">
                             <!-- Isi -->
-                            <div class="col-auto">
+                            <div class="col" style="min-width: 0;">
                                 <div class="card-body">
                                     <h5 class="card-title"><?= $row['nama_pelanggan'] ?></h5>
-                                    <p class="card-text"><?= $row['alamat'] ?></p>
+                                    <p class="card-text" style="margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><?= $row['alamat'] ?></p>
                                 </div>
                             </div>
 
                             <!-- Gambar -->
-                            <div class="order-img col">
-                                <img src="<?= $row['profil_foto'] ?>" class="" alt="...">
+                            <div class="order-img col-auto" style="padding: 10px;">
+                                <img src="<?= $row['profil_foto'] ?>" class="" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
                             </div>
                         </div>
                     </a>
