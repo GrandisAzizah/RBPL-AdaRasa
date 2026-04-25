@@ -16,6 +16,7 @@ if (!isset($_GET["id_bahan"]) || !is_numeric(($_GET["id_bahan"]))) { //is_numeri
 
 $id_bahan = (int)$_GET["id_bahan"];
 $bahan = query("SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
+$varian = query("SELECT * FROM menu_varian WHERE fk_menu_varian = $id_menu");
 
 // ambil id menu dari data bahan (fk_bahan_menu)
 $id_menu = $bahan['fk_menu_bahan'];
@@ -213,6 +214,26 @@ if (isset($_POST["submit"])) {
                     <option value="sendok makan" <?= $bahan['satuan'] == 'sendok makan' ? 'selected' : '' ?>>sendok makan</option>
                     <option value="sendok teh" <?= $bahan['satuan'] == 'sendok teh' ? 'selected' : '' ?>>sendok teh</option>
                 </select>
+
+                <label>Jumlah per Varian</label>
+                <div id="varian-container">
+                    <?php if (empty($varian)): ?>
+                        <!-- Kalau tidak ada varian, satu input saja -->
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="flex:1; font-size:13px;">Semua varian</span>
+                            <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
+                            <input type="hidden" name="fk_varian_bahan[]" value="">
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($varian as $v): ?>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <span style="flex:1; font-size:13px;"><?= $v['takaran'] ?></span>
+                                <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" style="flex:1; margin:0;">
+                                <input type="hidden" name="fk_varian_bahan[]" value="<?= $v['id_varian'] ?>">
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark mt-3">Kirim</button>
