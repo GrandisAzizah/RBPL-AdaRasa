@@ -15,6 +15,7 @@ if (!isset($_GET["id_menu"]) || !is_numeric(($_GET["id_menu"]))) { //is_numeric 
 }
 $id_menu = (int)$_GET["id_menu"];
 $m = query("SELECT * FROM menu WHERE id_menu = $id_menu")[0];
+$varian = query("SELECT * FROM menu_varian WHERE fk_menu_varian = $id_menu");
 
 $pesan = '';
 $tipe = '';
@@ -164,6 +165,27 @@ if (isset($_POST["submit"])) {
                     Harga tidak valid. Harus dalam rentang 0 - 999999
                 </small>
 
+                <label>Varian Takaran</label>
+                <div id="varian-container">
+                    <?php if (count($varian) > 0) : ?>
+                        <?php foreach ($varian as $v) : ?>
+                            <div class="varian-field mb-2">
+                                <input type="text" name="takaran[]" value="<?= $v['takaran'] ?>" placeholder="Takaran" class="mb-1" style="width: 100%;">
+                                <input type="text" name="harga_tambahan[]" value="<?= $v['harga_varian'] ?>"
+                                    placeholder="Harga tambahan" class="mb-1" style="width: 100%;"
+                                    oninput="validasiHargaTambahan(this)">
+                                <button type="button" onclick="this.parentElement.remove()" class="btn btn-sm btn-danger mt-1" style="width: auto; padding: 2px 8px !important;">Hapus</button>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <div class="varian-field mb-2">
+                            <input type="text" name="takaran[]" placeholder="Takaran (contoh: 500 gram)" class="mb-1" style="width: 100%;">
+                            <input type="text" name="harga_tambahan[]" placeholder="Harga tambahan" class="mb-1" style="width: 100%;">
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <button type="button" onclick="tambahVarian()" class="btn btn-sm btn-outline-secondary mt-1" style="width: auto; padding: 4px 12px !important;">+ Tambah Varian</button><br><br>
+
                 <!-- INPUT GAMBAR -->
                 <label for="gambar-menu">Gambar:<br></label>
                 <img src="<?= ($m["gambar_menu"]); ?>" alt="" style="width: 100%; margin-bottom: 10px; border-radius: 4px;">
@@ -181,16 +203,12 @@ if (isset($_POST["submit"])) {
 <script>
     function validasiHarga(input) {
         const error = document.getElementById('error-harga');
-
-        // Hapus semua karakter non-digit
         let value = input.value.replace(/[^\d]/g, '');
 
-        // Batasi 6 digit
         if (value.length > 6) {
             value = value.slice(0, 6);
         }
 
-        // Hapus leading zeros
         value = value.replace(/^0+/, '');
         if (value === '') value = '0';
 
@@ -204,11 +222,50 @@ if (isset($_POST["submit"])) {
         }
     }
 
-    // Tambahkan event listener untuk form submit
     document.querySelector('form').addEventListener('submit', function(e) {
         let hargaInput = document.getElementById('harga-menu');
         let hargaValue = hargaInput.value.replace(/[^\d]/g, '');
         hargaInput.value = hargaValue;
-        console.log('Nilai yang dikirim:', hargaValue); // Cek di console
+        console.log('Nilai yang dikirim:', hargaValue);
     });
+
+    function tambahVarian() {
+        const container = document.getElementById('varian-container');
+        const div = document.createElement('div');
+        div.className = 'varian-field mb-2';
+        div.innerHTML = `
+            <input type="text" name="takaran[]" placeholder="Takaran (contoh: 800 gram)" style="width: 100%;" class="mb-1">
+            <input type="number" name="harga_tambahan[]" placeholder="Harga tambahan" style="width: 100%;" class="mb-1">
+            <button type="button" onclick="this.parentElement.remove()" class="btn btn-sm btn-danger mt-1" style="width: auto; padding: 2px 8px !important;">Hapus</button>
+        `;
+        container.appendChild(div);
+    }
+
+    function validasiHarga(input) {
+        const error = document.getElementById('error-harga');
+        let value = input.value.replace(/[^\d]/g, '');
+
+        if (value.length > 6) {
+            value = value.slice(0, 6);
+        }
+
+        value = value.replace(/^0+/, '');
+        if (value === '') value = '0';
+
+        input.value = value;
+
+        const numericValue = parseInt(value, 10);
+        if (isNaN(numericValue) || numericValue < 0 || numericValue > 999999) {
+            error.style.display = 'block';
+        } else {
+            error.style.display = 'none';
+        }
+    }
+
+    // Validasi untuk input harga_tambahan
+    function validasiHargaTambahan(input) {
+        let value = input.value.replace(/[^\d]/g, '');
+        if (value === '') value = '0';
+        input.value = value;
+    }
 </script>
