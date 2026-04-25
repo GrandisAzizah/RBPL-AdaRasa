@@ -17,6 +17,8 @@ $pesan = '';
 $tipe = '';
 
 $id_dari_url = $_POST['id_menu'] ?? $_GET['id_menu'] ?? '';
+$varian = query("SELECT * FROM menu_varian WHERE fk_menu_varian = $id_dari_url");
+
 if (isset($_POST["submit"])) {
     $hasil = tambahBahanBaku($_POST);
     if ($hasil > 0) {
@@ -187,16 +189,12 @@ if (isset($_POST["submit"])) {
                 <input type="hidden" name="fk_menu" value="<?= $id_dari_url ?>">
                 <input type="text" value="<?= $nama_dari_url ?>" disabled><br><br>
 
-                <!-- INPUT NAMA MENU -->
-                <label for="nama_bahan">Nama Bahan Baku <br></label>
+                <!-- INPUT NAMA BAHAN -->
+                <label for="nama_bahan">Nama Bahan Baku</label>
                 <input type="text" name="nama_bahan" id="nama_bahan" maxlength="30" required><br><br>
 
-                <!-- INPUT JUMLAH -->
-                <label for="jumlah_default">Jumlah<br></label>
-                <input type="text" name="jumlah_default" id="jumlah_default" min="0" max="999999" step="0.01" required><br><br>
-
                 <!-- INPUT SATUAN -->
-                <label for="satuan">Satuan</label><br>
+                <label for="satuan">Satuan</label>
                 <select name="satuan" id="satuan">
                     <option value="buah">buah</option>
                     <option value="bungkus">bungkus</option>
@@ -211,7 +209,28 @@ if (isset($_POST["submit"])) {
                     <option value="sachet">sachet</option>
                     <option value="sendok makan">sendok makan</option>
                     <option value="sendok teh">sendok teh</option>
-                </select>
+                </select><br>
+
+                <label>Jumlah per Varian</label>
+                <div id="varian-container">
+                    <?php if (empty($varian)): ?>
+                        <!-- Kalau tidak ada varian, satu input saja -->
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                            <span style="flex:1; font-size:13px;">Semua varian</span>
+                            <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
+                            <input type="hidden" name="fk_varian_bahan[]" value="">
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($varian as $v): ?>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <span style="flex:1; font-size:13px;"><?= $v['takaran'] ?></span>
+                                <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" style="flex:1; margin:0;">
+                                <input type="hidden" name="fk_varian_bahan[]" value="<?= $v['id_varian'] ?>">
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark mt-3">Kirim</button>
@@ -228,4 +247,24 @@ if (isset($_POST["submit"])) {
             this.value = this.value.slice(0, -1); // hapus karakter terakhir
         }
     });
+
+    const varianOptions = `<?php foreach ($varian as $v): ?>
+    <option value="<?= $v['id_varian'] ?>"><?= $v['takaran'] ?></option>
+<?php endforeach; ?>`;
+
+    function tambahBaris() {
+        const container = document.getElementById('varian-container');
+        const div = document.createElement('div');
+        div.className = 'varian-row';
+        div.style = 'display:flex; gap:8px; align-items:center; margin-bottom:6px;';
+        div.innerHTML = `
+        <select name="fk_varian_bahan[]" style="flex:1; margin:0;">
+            <option value="">Semua varian</option>
+            ${varianOptions}
+        </select>
+        <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
+        <button type="button" onclick="this.parentElement.remove()" style="width:auto; padding:2px 8px !important;" class="btn btn-danger btn-sm">×</button>
+    `;
+        container.appendChild(div);
+    }
 </script>
