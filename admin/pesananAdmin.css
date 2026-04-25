@@ -61,6 +61,27 @@ body {
     height: 50px;
 }
 
+.btn-group-bahan {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.btn-group-bahan .btn {
+    white-space: normal;
+    word-wrap: break-word;
+    font-size: 12px;
+    padding: 6px 8px;
+    text-align: center;
+}
+
+.btn-group-bahan .btn a {
+    text-decoration: none;
+    color: inherit;
+}
+
 .btn-outline-primary {
     border-color: #79747E !important;
     color: black !important;
@@ -113,24 +134,6 @@ body {
     margin: 0 auto !important;
     padding: 20px !important;
 }
-
-/* .date-group {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 8px;
-}
-.date-group input {
-    width: 55px;
-    text-align: center;
-    margin-bottom: 0;
-}
-.date-group input[placeholder="YYYY"] {
-    width: 75px;
-}
-.date-group span {
-    font-weight: bold;
-} */
 
 .header-nav {
     display: flex !important;
