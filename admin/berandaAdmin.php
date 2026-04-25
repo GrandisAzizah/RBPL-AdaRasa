@@ -105,7 +105,7 @@ $tipe = 'info';
                         </svg>
                     </a>
                 </button>
-                <span class="menu-label">Pesanan</span>
+                <span class="menu-label" sty>Pesanan</span>
             </div>
 
             <div class="menu-item">
@@ -135,7 +135,9 @@ $tipe = 'info';
             </div>
         </div>
 
-        <h5>Pesanan Masuk</h5>
+        <a href="pesanan.php" style="text-decoration: none;">
+            <h5>Pesanan Masuk</h5>
+        </a>
 
         <?php if (empty($pesanan_terbaru)): ?>
             <p class="text-muted" style="font-size: 16px;">Belum ada pesanan</p>
@@ -170,7 +172,9 @@ $tipe = 'info';
             </button>
         <?php endif; ?>
 
-        <h5>Bahan Baku</h5>
+        <a href="listBelanjaBahan.php">
+            <h5>Bahan Baku</h5>
+        </a>
         <?php if (empty($bahan_perlu_beli)): ?>
             <p class="text-muted" style="font-size: 14px;">
                 Belum ada bahan baku yang perlu dibeli
