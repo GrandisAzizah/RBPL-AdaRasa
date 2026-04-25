@@ -10,7 +10,7 @@ require '../functions.php';
 
 $jumlah = $_SESSION['pesanan']['jumlah'] ?? 1;
 $id_menu = $_SESSION['pesanan']['fk_menu'] ?? 0;
-$bahan = query("SELECT * FROM bahan_baku WHERE fk_bahan_menu = $id_menu");
+$bahan = query("SELECT * FROM bahan_baku WHERE fk_menu_bahan = $id_menu");
 
 $pesan = '';
 $tipe = '';
