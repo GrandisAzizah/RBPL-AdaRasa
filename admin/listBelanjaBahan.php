@@ -63,13 +63,13 @@ require '../functions.php';
             <p class="text-center mt-5" style="color: #979696; margin-top: 20px; height: 70vh; display: flex; align-items: center; justify-content: center;">Belum ada data stok bahan baku yang perlu dibeli</p>
         <?php else: ?>
             <?php foreach ($bahan_tersedia as $b): ?>
-                <div class="card-order">
+                <div class="card-bahan">
                     <div class="row g-0">
                         <!-- Isi -->
                         <div class="col-auto">
-                            <div class="card-body">
-                                <h5 class="card-title"><?= $b['nama_bahan_stok'] ?></h5>
-                                <p class="card-text">Stok: <?= $b['stok_tersedia'] ?> . ' ' . <?= $b['satuan'] ?></p>
+                            <div class="card-body-bahan">
+                                <h5 class="card-title-bahan"><?= $b['nama_bahan_stok'] ?></h5>
+                                <p class="card-text-bahan">Stok: <?= $b['stok_tersedia'] ?> . ' ' . <?= $b['satuan'] ?></p>
                             </div>
                         </div>
                     </div>
