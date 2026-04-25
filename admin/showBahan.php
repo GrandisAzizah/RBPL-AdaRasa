@@ -1,18 +1,33 @@
 <?php
-
 session_start();
-// user belum login
 if (!isset($_SESSION["login"])) {
     header("location: login.php");
     exit;
 }
 
 require '../functions.php';
-$bahan = query("SELECT * FROM bahan_baku WHERE fk_bahan_menu = $_GET[id_menu] ORDER BY nama_bahan ASC");
-$id_menu = $_GET['id_menu'];
-$menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu");
-$nama_menu = $menu[0]['nama_menu'];
 
+$id_menu = isset($_GET['id_menu']) ? (int)$_GET['id_menu'] : 0;
+
+if ($id_menu == 0) {
+    echo "ID Menu tidak valid";
+    exit;
+}
+
+// Query langsung ke bahan_baku (karena fk_menu_bahan sudah ada)
+$bahan = query("
+    SELECT 
+        id_bahan,
+        nama_bahan,
+        jumlah_default,
+        satuan
+    FROM bahan_baku 
+    WHERE fk_menu_bahan = $id_menu
+    ORDER BY nama_bahan ASC
+");
+
+$menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu");
+$nama_menu = $menu[0]['nama_menu'] ?? 'Menu';
 ?>
 
 <!DOCTYPE html>
