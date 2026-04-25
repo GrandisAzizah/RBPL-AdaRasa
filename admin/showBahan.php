@@ -22,15 +22,16 @@ $bahan = query("SELECT
     bb.satuan,
     GROUP_CONCAT(
         CASE 
-            WHEN mv.takaran IS NOT NULL THEN CONCAT(bb.jumlah_default, ' (', mv.takaran, ')')
-            ELSE bb.jumlah_default
+            WHEN mv.takaran IS NOT NULL THEN CONCAT(bb.jumlah_default, ' ', bb.satuan, ' (', mv.takaran, ')')
+            ELSE CONCAT(bb.jumlah_default, ' ', bb.satuan)
         END
         ORDER BY mv.id_varian SEPARATOR ', '
     ) as jumlah_info
 FROM bahan_baku bb
 LEFT JOIN menu_varian mv ON bb.fk_varian_bahan = mv.id_varian
 WHERE bb.fk_menu_bahan = $id_menu
-GROUP BY bb.nama_bahan, bb.satuan");
+GROUP BY bb.nama_bahan, bb.satuan
+ORDER BY bb.nama_bahan ASC");
 
 $menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu");
 $nama_menu = $menu[0]['nama_menu'] ?? 'Menu';
@@ -77,12 +78,12 @@ $nama_menu = $menu[0]['nama_menu'] ?? 'Menu';
                     <div class="col">
                         <div class="card-body">
                             <h5 class="card-title"><?= $row['nama_bahan'] ?></h5>
-                            <p class="card-text"><?= $row['jumlah_info'] . ' ' . $row['satuan'] ?></p>
+                            <p class="card-text"><?= $row['jumlah_info'] ?></p>
                         </div>
                     </div>
                     <!-- Tombol Edit dan Hapus -->
                     <div class="col-auto menu-btn d-flex align-items-center gap-2 p-2 align-self-end">
-                        <a href="editBahan.php?id_bahan=<?= $row['id_bahan_list'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
+                        <a href="editBahan.php?id_bahan=<?= $row['id_bahan'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
                         <a href="#" class="delete-btn btn btn-danger btn-sm"
                             onclick="setHapusUrl('hapusBahan.php?id_bahan=<?= $row['id_bahan_list'] ?>&id_menu=<?= $id_menu ?>')">
                             Hapus
