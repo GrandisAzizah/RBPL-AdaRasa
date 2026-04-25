@@ -90,27 +90,41 @@ function ganti_usn($data)
 }
 
 // untuk menu
-function tambah($data)
+function tambahMenu($data)
 {
     global $conn;
-    // ambil data dari setiap elemen dalam form
-    // disimpan ke dalam variabel biar nanti di query gampang
-    // diubah jadi $data["..."] karena elemen form di 'post' dan ditangkap oleh parameter $data
+
     $nama_menu = htmlspecialchars($data["nama-menu"]);
-    $harga = htmlspecialchars($data["harga-menu"]);
-    // upload gambar
+    // Konversi harga menu (bersihin dari non-angka)
+    $harga_menu_clean = preg_replace('/[^0-9]/', '', $data["harga-menu"]);
+    $harga_menu = intval($harga_menu_clean);
+
     $gambar_menu = upload();
     if (!$gambar_menu) {
-        return false; // insert tidak dijalankan
+        return false;
     }
 
-    $query = "INSERT INTO menu VALUES
-            (NULL, '$nama_menu', '$harga', '$gambar_menu')
-    ";
-
+    $query = "INSERT INTO menu (nama_menu, harga_menu, gambar_menu) 
+              VALUES ('$nama_menu', '$harga_menu', '$gambar_menu')";
     mysqli_query($conn, $query);
+    $id_menu = mysqli_insert_id($conn);
 
-    // jika gagal -1, jika berhasil 1
+    // Insert varian
+    if (isset($data['takaran']) && is_array($data['takaran'])) {
+        for ($i = 0; $i < count($data['takaran']); $i++) {
+            $takaran = trim($data['takaran'][$i]);
+            // Konversi harga tambahan (bersihin dari non-angka)
+            $harga_tambahan_clean = preg_replace('/[^0-9]/', '', $data['harga_tambahan'][$i] ?? '0');
+            $harga_tambahan = intval($harga_tambahan_clean);
+
+            if (!empty($takaran)) {
+                $queryVarian = "INSERT INTO menu_varian (fk_menu_varian, takaran, harga_varian) 
+                                VALUES ('$id_menu', '$takaran', '$harga_tambahan')";
+                mysqli_query($conn, $queryVarian);
+            }
+        }
+    }
+
     return mysqli_affected_rows($conn);
 }
 
@@ -168,13 +182,13 @@ function hapusMenu($id_menu)
     // hapus file gambar dari folder
     if ($row) {
         $pathGambar = '../img/' . basename($row['gambar_menu']);
-
         if (file_exists($pathGambar)) {
             unlink($pathGambar);
         }
     }
 
-    // hapus data menu dari database
+    mysqli_query($conn, "DELETE FROM menu_varian WHERE fk_menu_varian = $id_menu");
+
     mysqli_query($conn, "DELETE FROM menu WHERE id_menu = $id_menu");
     return mysqli_affected_rows($conn);
 }
@@ -194,7 +208,6 @@ function editMenu($data)
 
     $harga = intval($hargaClean);
 
-    // Validasi range
     if ($harga < 0 || $harga > 999999) {
         return false;
     }
@@ -207,7 +220,7 @@ function editMenu($data)
             $gambar_menu = $gambar_baru;
             $uploadGambarBaru = true;
         } else {
-            return false; // upload gagal
+            return false;
         }
     }
 
@@ -218,38 +231,52 @@ function editMenu($data)
         }
     }
 
+    // Update menu
     $query = "UPDATE menu SET
                 nama_menu = '$nama_menu',
                 harga_menu = '$harga',
                 gambar_menu = '$gambar_menu'
               WHERE id_menu = $id_menu";
-
     mysqli_query($conn, $query);
+
+    // Hapus varian lama
+    mysqli_query($conn, "DELETE FROM menu_varian WHERE fk_menu_varian = $id_menu");
+
+    // Insert varian baru
+    if (isset($data['takaran']) && is_array($data['takaran'])) {
+        for ($i = 0; $i < count($data['takaran']); $i++) {
+            $takaran = trim($data['takaran'][$i]);
+            $harga_tambahan = isset($data['harga_tambahan'][$i]) ? (int)$data['harga_tambahan'][$i] : 0;
+
+            if (!empty($takaran)) {
+                $queryVarian = "INSERT INTO menu_varian (fk_menu_varian, takaran, harga_varian) 
+                                VALUES ('$id_menu', '$takaran', '$harga_tambahan')";
+                mysqli_query($conn, $queryVarian);
+            }
+        }
+    }
+
     return mysqli_affected_rows($conn);
 }
 
 function tambahBahanBaku($data)
 {
     global $conn;
-    $fk_menu = htmlspecialchars($data['fk_menu']);
+
+    $fk_menu = (int)htmlspecialchars($data['fk_menu']);
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
-    $jumlah_default = floatval(str_replace(',', '.', $data['jumlah_default']));
+
+    // Konversi jumlah_default (ganti koma dengan titik, lalu ke float)
+    $jumlah_default_raw = str_replace(',', '.', $data['jumlah_default']);
+    $jumlah_default = floatval($jumlah_default_raw);
+
     $satuan = htmlspecialchars($data['satuan']);
 
-    $query = "INSERT INTO bahan_baku VALUES
-            (NULL, '$fk_menu', '$nama_bahan', '$jumlah_default', '$satuan')
-    ";
+    $query = "INSERT INTO bahan_baku (fk_menu_bahan, nama_bahan, jumlah_default, satuan) 
+              VALUES ('$fk_menu', '$nama_bahan', '$jumlah_default', '$satuan')";
 
     mysqli_query($conn, $query);
 
-    // jika gagal -1, jika berhasil 1
-    return mysqli_affected_rows($conn);
-}
-
-function hapusBahan($id_bahan)
-{
-    global $conn;
-    mysqli_query($conn, "DELETE FROM bahan_baku WHERE id_bahan = $id_bahan");
     return mysqli_affected_rows($conn);
 }
 
@@ -272,39 +299,12 @@ function editBahan($data)
     return mysqli_affected_rows($conn);
 }
 
-// function tambahPesanan($data)
-// {
-//     global $conn;
-//     $fk_customer = (int)$data['fk_customer'];
-//     $menu_fk = htmlspecialchars($data['menu_fk']);
-//     $jumlah = htmlspecialchars($data['jumlah']);
-//     $takaran = htmlspecialchars($data['takaran']);
-//     $packing = htmlspecialchars($data['packing']);
-//     // $harga_menu = htmlspecialchars($data['harga_menu']);
-//     // $harga_total = htmlspecialchars($data['harga_menu']) * htmlspecialchars($data['jumlah']);
-//     $status_pemesanan = htmlspecialchars($data['status_pemesanan']);
-//     $tanggal_pesan = htmlspecialchars($data['tanggal_pesan']);
-//     $catatan_khusus_pemesanan = htmlspecialchars($data['catatan_khusus_pemesanan']);
-//     $tanggal_antar = htmlspecialchars($data['tanggal_antar']);
-//     $metode = htmlspecialchars($data['metode_pengantaran']);
-
-//     if ($metode === 'Kurir Catering') {
-//         $status_pemesanan = 'Diterima';
-//     } elseif ($metode === 'Ojek Online') {
-//         $status_pemesanan = 'Selesai';
-//     }
-
-//     $query = "INSERT INTO pesanan VALUES
-//             (NULL, $fk_customer, '$jumlah','$harga_total', $harga_menu','$status_pemesanan',
-//             '$tanggal_pesan','$catatan_khusus_pemesanan',
-//             '$tanggal_antar', '$menu_fk')
-//     ";
-
-//     mysqli_query($conn, $query);
-
-//     // jika gagal -1, jika berhasil 1
-//     return mysqli_affected_rows($conn);
-// }
+function hapusBahan($id_bahan)
+{
+    global $conn;
+    mysqli_query($conn, "DELETE FROM bahan_baku WHERE id_bahan = $id_bahan");
+    return mysqli_affected_rows($conn);
+}
 
 function harga_menu($fk_menu, $fk_pesanan_varian)
 {
@@ -530,21 +530,25 @@ function editPelanggan($data)
     $no_hp = htmlspecialchars($data["no_hp"]);
     $alamat = htmlspecialchars($data['alamat']);
 
-    if ($_FILES['profil_foto']['error'] === 4) {
-        $profil_foto = $data["gambarLama"];
-    } else {
+    // Cek apakah upload gambar baru
+    if (isset($_FILES['profil_foto']) && $_FILES['profil_foto']['error'] !== 4) {
         $profil_foto = upload_profil();
         if (!$profil_foto) {
-            return false; // jika upload gagal, hentikan proses edit
+            return false;
         }
+
+        // Hapus gambar lama
+        if (!empty($data["gambarLama"])) {
+            $pathGambarLama = '../img/' . basename($data["gambarLama"]);
+            if (file_exists($pathGambarLama)) {
+                unlink($pathGambarLama);
+            }
+        }
+    } else {
+        $profil_foto = $data["gambarLama"] ?? '';
     }
 
-    $pathGambarLama = '../img/' . basename($data["gambarLama"]);
-    if (file_exists($pathGambarLama)) {
-        unlink($pathGambarLama);
-    }
-
-    $query = "UPDATE menu SET
+    $query = "UPDATE customer SET
                 nama_pelanggan = '$nama_pelanggan',
                 no_hp = '$no_hp',
                 alamat = '$alamat',
@@ -574,5 +578,25 @@ function hapusPelanggan($id_pelanggan)
 
     // hapus data menu dari database
     mysqli_query($conn, "DELETE FROM customer WHERE id_pelanggan = $id_pelanggan");
+    return mysqli_affected_rows($conn);
+}
+
+function inputStokBahan($data)
+{
+    global $conn;
+
+    $nama_bahan_stok = htmlspecialchars($data["nama_bahan_stok"]);
+
+    // Konversi jumlah_stok (ganti koma dengan titik, lalu ke float)
+    $jumlah_stok_raw = str_replace(',', '.', $data['stok_tersedia']);
+    $stok_tersedia = floatval($jumlah_stok_raw);
+
+    $satuan = htmlspecialchars($data['satuan']);
+
+    $query = "INSERT INTO stok_bahan (nama_bahan_stok, stok_tersedia, satuan) 
+    VALUES ('$nama_bahan_stok', '$stok_tersedia', '$satuan')";
+
+    mysqli_query($conn, $query);
+
     return mysqli_affected_rows($conn);
 }
