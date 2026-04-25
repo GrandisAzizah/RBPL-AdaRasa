@@ -54,7 +54,7 @@ $nama_pelanggan = $pelanggan[0]['nama_pelanggan'];
                             <p class="card-text">Alamat: <?= $row['alamat'] ?></p>
                             <p class="card-text">No HP: <?= $row['no_hp'] ?></p>
                         </div>
-                    </div>
+                    </div><br>
                     <!-- Tombol Edit dan Hapus -->
                     <div class="col-auto menu-btn d-flex align-items-center gap-2 p-2 align-self-end">
                         <a href="editPelanggan.php?id_pelanggan=<?= $row['id_pelanggan'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
