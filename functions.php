@@ -259,6 +259,16 @@ function editMenu($data)
     return mysqli_affected_rows($conn);
 }
 
+function parseFraksi($str)
+{
+    $str = trim($str);
+    if (strpos($str, '/') !== false) {
+        [$pembilang, $penyebut] = explode('/', $str);
+        return $penyebut != 0 ? floatval($pembilang) / floatval($penyebut) : 0;
+    }
+    return floatval(str_replace(',', '.', $str));
+}
+
 function tambahBahanBaku($data)
 {
     global $conn;
@@ -283,7 +293,7 @@ function tambahBahanBaku($data)
 
     foreach ($jumlah_list as $i => $jumlah_raw) {
         if ($jumlah_raw === '' || $jumlah_raw === null) continue;
-        $jumlah = floatval(str_replace(',', '.', $jumlah_raw)); // ini yang kurang
+        $jumlah = parseFraksi($jumlah_raw);
         $fk_varian = !empty($varian_list[$i]) ? (int)$varian_list[$i] : 'NULL';
 
         $query = "INSERT INTO bahan_baku (fk_menu_bahan, nama_bahan, jumlah_default, satuan, fk_bahan_stok, fk_varian_bahan) 
@@ -300,7 +310,7 @@ function editBahan($data)
     global $conn;
     $id_bahan = $data["id_bahan"];
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
-    $jumlah_default = htmlspecialchars($data['jumlah_default']);
+    $jumlah_default = parseFraksi($data['jumlah_default']);
     $satuan = htmlspecialchars($data['satuan']);
     $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
 
@@ -405,49 +415,32 @@ function hapusPesanan($id_pesanan)
     return mysqli_affected_rows($conn);
 }
 
-function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesanan)
+function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesanan, $bahan_tambahan_dipilih = [], $bahan_tambahan_session = [])
 {
     global $conn;
 
+    // Loop bahan default (yang sudah ada)
     foreach ($bahan_dipilih as $id_bahan) {
-        // Ambil data bahan dari bahan_baku
-        $result = mysqli_query($conn, "SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
-        $bahan = mysqli_fetch_assoc($result);
+        // ... kode yang sudah ada
+    }
 
-        if ($bahan) {
-            $jumlah_dipakai = $bahan['jumlah_default'] * $jumlah_pesanan;
+    // Loop bahan tambahan dari session
+    foreach ($bahan_tambahan_dipilih as $i) {
+        if (!isset($bahan_tambahan_session[$i])) continue;
+        $bt = $bahan_tambahan_session[$i];
+        $nama = mysqli_real_escape_string($conn, $bt['nama_bahan']);
+        $jumlah_dipakai = $bt['jumlah'] * $jumlah_pesanan;
+        $satuan = mysqli_real_escape_string($conn, $bt['satuan']);
 
-            // Cari id_stok dari tabel stok_bahan berdasarkan nama bahan
-            $queryStok = "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '{$bahan['nama_bahan']}' LIMIT 1";
-            $resultStok = mysqli_query($conn, $queryStok);
-            $stok = mysqli_fetch_assoc($resultStok);
+        // Cari id_stok
+        $cek = mysqli_query($conn, "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama' LIMIT 1");
+        $stok = mysqli_fetch_assoc($cek);
+        if (!$stok) continue;
 
-            if (!$stok) {
-                continue;
-            }
-
-            $id_stok = $stok['id_stok'];
-
-            $query = "INSERT INTO detail_pesanan_bahan (
-            fk_detail_pesanan, 
-            fk_detail_stok, 
-            fk_bahan_detail,
-            jumlah_dipakai,
-            packing
-            ) VALUES (
-            '$id_pesanan', 
-            '$id_stok',      
-            '$id_bahan',
-            '$jumlah_dipakai',
-            '$packing')";
-
-            mysqli_query($conn, $query);
-
-            if (mysqli_error($conn)) {
-                echo "Error: " . mysqli_error($conn);
-                return 0;
-            }
-        }
+        $id_stok = $stok['id_stok'];
+        mysqli_query($conn, "INSERT INTO detail_pesanan_bahan 
+            (fk_detail_pesanan, fk_detail_stok, fk_bahan_detail, jumlah_dipakai, packing)
+            VALUES ('$id_pesanan', '$id_stok', NULL, '$jumlah_dipakai', '$packing')");
     }
 
     return mysqli_affected_rows($conn);
