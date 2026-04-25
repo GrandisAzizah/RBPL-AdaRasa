@@ -262,37 +262,53 @@ function editMenu($data)
 function tambahBahanBaku($data)
 {
     global $conn;
-
-    $fk_menu = (int)htmlspecialchars($data['fk_menu']);
+    $fk_menu = (int)$data['fk_menu'];
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
-
-    // Konversi jumlah_default (ganti koma dengan titik, lalu ke float)
-    $jumlah_default_raw = str_replace(',', '.', $data['jumlah_default']);
-    $jumlah_default = floatval($jumlah_default_raw);
-
     $satuan = htmlspecialchars($data['satuan']);
 
-    $query = "INSERT INTO bahan_baku (fk_menu_bahan, nama_bahan, jumlah_default, satuan) 
-              VALUES ('$fk_menu', '$nama_bahan', '$jumlah_default', '$satuan')";
+    // Cek/insert stok
+    $cek = mysqli_query($conn, "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama_bahan' LIMIT 1");
+    $stok = mysqli_fetch_assoc($cek);
+    if ($stok) {
+        $id_stok = $stok['id_stok'];
+    } else {
+        mysqli_query($conn, "INSERT INTO stok_bahan (nama_bahan_stok, stok_tersedia, satuan) VALUES ('$nama_bahan', 0, '$satuan')");
+        $id_stok = mysqli_insert_id($conn);
+    }
 
-    mysqli_query($conn, $query);
+    // Loop setiap baris varian
+    $jumlah_list = $data['jumlah_default'];
+    $varian_list = $data['fk_varian_bahan'];
+    $berhasil = 0;
 
-    return mysqli_affected_rows($conn);
+    foreach ($jumlah_list as $i => $jumlah_raw) {
+        if ($jumlah_raw === '' || $jumlah_raw === null) continue;
+        $jumlah = floatval(str_replace(',', '.', $jumlah_raw)); // ini yang kurang
+        $fk_varian = !empty($varian_list[$i]) ? (int)$varian_list[$i] : 'NULL';
+
+        $query = "INSERT INTO bahan_baku (fk_menu_bahan, nama_bahan, jumlah_default, satuan, fk_bahan_stok, fk_varian_bahan) 
+              VALUES ('$fk_menu', '$nama_bahan', '$jumlah', '$satuan', '$id_stok', $fk_varian)";
+        mysqli_query($conn, $query);
+        $berhasil += mysqli_affected_rows($conn);
+    }
+
+    return $berhasil;
 }
 
 function editBahan($data)
 {
     global $conn;
-
     $id_bahan = $data["id_bahan"];
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
     $jumlah_default = htmlspecialchars($data['jumlah_default']);
     $satuan = htmlspecialchars($data['satuan']);
+    $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
 
     $query = "UPDATE bahan_baku SET
                 nama_bahan = '$nama_bahan',
                 jumlah_default = '$jumlah_default',
-                satuan = '$satuan'
+                satuan = '$satuan',
+                fk_varian_bahan = $fk_varian_bahan
               WHERE id_bahan = $id_bahan";
 
     mysqli_query($conn, $query);
@@ -302,7 +318,9 @@ function editBahan($data)
 function hapusBahan($id_bahan)
 {
     global $conn;
-    mysqli_query($conn, "DELETE FROM bahan_baku WHERE id_bahan = $id_bahan");
+    $id_bahan_list = $_GET['id_bahan']; // "60,61"
+    $ids = implode(',', array_map('intval', explode(',', $id_bahan_list)));
+    mysqli_query($conn, "DELETE FROM bahan_baku WHERE id_bahan IN ($ids)");
     return mysqli_affected_rows($conn);
 }
 
@@ -598,5 +616,32 @@ function inputStokBahan($data)
 
     mysqli_query($conn, $query);
 
+    return mysqli_affected_rows($conn);
+}
+
+function hapusStokBahan($id_stok)
+{
+    global $conn;
+
+    $id_stok = (int)$id_stok;
+    mysqli_query($conn, "DELETE FROM stok_bahan WHERE id_stok = $id_stok");
+    return mysqli_affected_rows($conn);
+}
+
+function editStokBahan($data)
+{
+    global $conn;
+    $id_stok = (int)$data["id_stok"];
+    $nama_bahan_stok = htmlspecialchars($data["nama_bahan_stok"]);
+    $stok_tersedia = floatval(str_replace(',', '.', $data['stok_tersedia']));
+    $satuan = htmlspecialchars($data['satuan']);
+
+    $query = "UPDATE stok_bahan SET
+                nama_bahan_stok = '$nama_bahan_stok',
+                stok_tersedia = '$stok_tersedia',
+                satuan = '$satuan'
+              WHERE id_stok = $id_stok";
+
+    mysqli_query($conn, $query);
     return mysqli_affected_rows($conn);
 }
