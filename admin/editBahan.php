@@ -18,11 +18,15 @@ $id_bahan = (int)$_GET["id_bahan"];
 $bahan = query("SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
 
 // ambil id menu dari data bahan (fk_bahan_menu)
-$id_menu = $bahan['fk_bahan_menu'];
+$id_menu = $bahan['fk_menu_bahan'];
 
 // ambil nama menu untuk ditampilkan
-$menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu")[0];
-$nama_menu = $menu['nama_menu'];
+if ($id_menu > 0) {
+    $menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu");
+    $nama_menu = $menu[0]['nama_menu'] ?? 'Menu tidak ditemukan';
+} else {
+    $nama_menu = 'Menu tidak ditemukan';
+}
 
 $pesan = '';
 $tipe = '';
@@ -163,7 +167,7 @@ if (isset($_POST["submit"])) {
 <body>
     <div>
         <div style="display: flex; align-items: center; justify-content: center; position: relative;" class="mb-3">
-            <a href="showBahan.php?id_menu=<?= $bahan['fk_bahan_menu'] ?>" style="position: absolute; left: 0; flex-shrink: 0;">
+            <a href="showBahan.php?id_menu=<?= $bahan['fk_menu_bahan'] ?>" style="position: absolute; left: 0; flex-shrink: 0;">
                 <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
