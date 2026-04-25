@@ -15,10 +15,19 @@ if (!isset($_GET["id_pelanggan"]) || !is_numeric(($_GET["id_pelanggan"]))) { //i
 $id_pelanggan = (int)$_GET['id_pelanggan'];
 $pelanggan = query("SELECT * FROM customer WHERE id_pelanggan = $id_pelanggan");
 
+if (count($pelanggan) == 0) {
+    die("Data pelanggan tidak ditemukan");
+}
+
+$p = $pelanggan[0];
+
 // alert jika input berhasil atau gagal
 $pesan = '';
 $tipe = '';
 if (isset($_POST["submit"])) {
+    $_POST['id_pelanggan'] = $id_pelanggan;
+    $_POST['gambarLama'] = $p['profil_foto'];
+
     $hasil = editPelanggan($_POST);
     if ($hasil > 0) {
         $pesan = 'Data berhasil diedit!';
@@ -153,18 +162,18 @@ if (isset($_POST["submit"])) {
 
                 <!-- INPUT NAMA MENU -->
                 <label for="nama_pelanggan">Nama<br></label>
-                <input type="text" name="nama_pelanggan" id="nama_pelanggan" maxlength="30" required><br><br>
+                <input type="text" name="nama_pelanggan" id="nama_pelanggan" value="<?= $p['nama_pelanggan'] ?>" maxlength="30" required><br><br>
 
                 <!-- INPUT NO HP -->
                 <label for="no_hp">No HP</label>
-                <input type="text" name="no_hp" id="no_hp" maxlength="15" required><br><br>
+                <input type="text" name="no_hp" id="no_hp" value="<?= $p['no_hp'] ?>" maxlength="15" required><br><br>
 
                 <label for="alamat">Alamat</label>
-                <input type="text" name="alamat" id="alamat" required><br><br>
+                <input type="text" name="alamat" id="alamat" value="<?= $p['alamat'] ?>" required><br><br>
 
                 <!-- INPUT GAMBAR -->
                 <label for="profil_foto">Profil:<br></label>
-                <input type="file" name="profil_foto" id="profil_foto" required><br><br>
+                <input type="file" name="profil_foto" id="profil_foto" value="<?= $p['profil_foto'] ?>" required><br><br>
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark">Kirim</button>
