@@ -10,7 +10,11 @@ require '../functions.php';
 
 $jumlah = $_SESSION['pesanan']['jumlah'] ?? 1;
 $id_menu = $_SESSION['pesanan']['fk_menu'] ?? 0;
-$bahan = query("SELECT * FROM bahan_baku WHERE fk_menu_bahan = $id_menu");
+$fk_varian = $_SESSION['pesanan']['fk_pesanan_varian'] ?? 0;
+
+$bahan = query("SELECT * FROM bahan_baku 
+    WHERE fk_menu_bahan = $id_menu 
+    AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
 
 $pesan = '';
 $tipe = '';
@@ -34,7 +38,17 @@ if (isset($_POST["submit"])) {
 
     if ($id_pesanan > 0) {
         // Simpan detail bahan dan packing
-        simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $_SESSION['pesanan']['jumlah']);
+        $bahan_tambahan_dipilih = $_POST['bahan_tambahan'] ?? [];
+        $bahan_tambahan_session = $_SESSION['pesanan']['bahan_tambahan'] ?? [];
+
+        simpanDetailPesanan(
+            $id_pesanan,
+            $bahan_dipilih,
+            $packing,
+            $_SESSION['pesanan']['jumlah'],
+            $bahan_tambahan_dipilih,
+            $bahan_tambahan_session
+        );
 
         $pesan = 'Pesanan berhasil disimpan!';
         $tipe = 'success';
@@ -187,6 +201,19 @@ if (isset($_POST["submit"])) {
                             </label>
                         </div>
                     <?php endforeach; ?>
+
+                    <!-- Setelah loop bahan default -->
+                    <?php if (!empty($_SESSION['pesanan']['bahan_tambahan'])): ?>
+                        <?php foreach ($_SESSION['pesanan']['bahan_tambahan'] as $i => $bt): ?>
+                            <div class="bahan-item">
+                                <input type="checkbox" name="bahan_tambahan[]" value="<?= $i ?>" id="tambahan<?= $i ?>" checked>
+                                <label for="tambahan<?= $i ?>" class="bahan-label">
+                                    <span class="bahan-nama"><?= $bt['nama_bahan'] ?></span>
+                                    <span class="bahan-jumlah"><?= $bt['jumlah'] * $jumlah ?> <?= $bt['satuan'] ?></span>
+                                </label>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
 
                 <div class="tambah-bahan-baru">
