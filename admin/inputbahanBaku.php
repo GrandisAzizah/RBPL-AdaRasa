@@ -217,14 +217,14 @@ if (isset($_POST["submit"])) {
                         <!-- Kalau tidak ada varian, satu input saja -->
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                             <span style="flex:1; font-size:13px;">Semua varian</span>
-                            <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
+                            <input type="text" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
                             <input type="hidden" name="fk_varian_bahan[]" value="">
                         </div>
                     <?php else: ?>
                         <?php foreach ($varian as $v): ?>
                             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
                                 <span style="flex:1; font-size:13px;"><?= $v['takaran'] ?></span>
-                                <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" style="flex:1; margin:0;">
+                                <input type="text" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" style="flex:1; margin:0;">
                                 <input type="hidden" name="fk_varian_bahan[]" value="<?= $v['id_varian'] ?>">
                             </div>
                         <?php endforeach; ?>
@@ -262,7 +262,7 @@ if (isset($_POST["submit"])) {
             <option value="">Semua varian</option>
             ${varianOptions}
         </select>
-        <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
+        <input type="text" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
         <button type="button" onclick="this.parentElement.remove()" style="width:auto; padding:2px 8px !important;" class="btn btn-danger btn-sm">×</button>
     `;
         container.appendChild(div);
