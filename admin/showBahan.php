@@ -15,16 +15,22 @@ if ($id_menu == 0) {
 }
 
 // Query langsung ke bahan_baku (karena fk_menu_bahan sudah ada)
-$bahan = query("
-    SELECT 
-        id_bahan,
-        nama_bahan,
-        jumlah_default,
-        satuan
-    FROM bahan_baku 
-    WHERE fk_menu_bahan = $id_menu
-    ORDER BY nama_bahan ASC
-");
+$bahan = query("SELECT 
+    MIN(bb.id_bahan) as id_bahan,
+    GROUP_CONCAT(bb.id_bahan ORDER BY mv.id_varian SEPARATOR ',') as id_bahan_list,
+    bb.nama_bahan,
+    bb.satuan,
+    GROUP_CONCAT(
+        CASE 
+            WHEN mv.takaran IS NOT NULL THEN CONCAT(bb.jumlah_default, ' (', mv.takaran, ')')
+            ELSE bb.jumlah_default
+        END
+        ORDER BY mv.id_varian SEPARATOR ', '
+    ) as jumlah_info
+FROM bahan_baku bb
+LEFT JOIN menu_varian mv ON bb.fk_varian_bahan = mv.id_varian
+WHERE bb.fk_menu_bahan = $id_menu
+GROUP BY bb.nama_bahan, bb.satuan");
 
 $menu = query("SELECT nama_menu FROM menu WHERE id_menu = $id_menu");
 $nama_menu = $menu[0]['nama_menu'] ?? 'Menu';
@@ -71,13 +77,16 @@ $nama_menu = $menu[0]['nama_menu'] ?? 'Menu';
                     <div class="col">
                         <div class="card-body">
                             <h5 class="card-title"><?= $row['nama_bahan'] ?></h5>
-                            <p class="card-text"><?= $row['jumlah_default'] . ' ' . $row['satuan'] ?></p>
+                            <p class="card-text"><?= $row['jumlah_info'] . ' ' . $row['satuan'] ?></p>
                         </div>
                     </div>
                     <!-- Tombol Edit dan Hapus -->
                     <div class="col-auto menu-btn d-flex align-items-center gap-2 p-2 align-self-end">
-                        <a href="editBahan.php?id_bahan=<?= $row['id_bahan'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
-                        <a href="#" class="delete-btn btn btn-danger btn-sm" onclick="setHapusUrl('hapusBahan.php?id_bahan=<?= $row['id_bahan'] ?>&id_menu=<?= $id_menu ?>')">Hapus</a>
+                        <a href="editBahan.php?id_bahan=<?= $row['id_bahan_list'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
+                        <a href="#" class="delete-btn btn btn-danger btn-sm"
+                            onclick="setHapusUrl('hapusBahan.php?id_bahan=<?= $row['id_bahan_list'] ?>&id_menu=<?= $id_menu ?>')">
+                            Hapus
+                        </a>
                     </div>
                 </div>
             </div>
