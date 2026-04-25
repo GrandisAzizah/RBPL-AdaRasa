@@ -13,7 +13,7 @@ require '../functions.php';
 $pesan = '';
 $tipe = '';
 if (isset($_POST["submit"])) {
-    $hasil = tambah($_POST);
+    $hasil = tambahMenu($_POST);
     if ($hasil > 0) {
         $pesan = 'Data berhasil ditambahkan!';
         $tipe = 'success';
@@ -157,6 +157,18 @@ if (isset($_POST["submit"])) {
                 <label for="gambar-menu">Gambar:<br></label>
                 <input type="file" name="gambar-menu" id="gambar-menu" required><br><br>
 
+                <!-- VARIAN TAKARAN -->
+                <label>Varian Takaran</label>
+                <div id="varian-container">
+                    <div class="varian-field mb-2">
+                        <input type="text" name="takaran[]" placeholder="Takaran (contoh: 500 gram)" class="mb-1" style="width: 100%;">
+                        <input type="text" name="harga_tambahan[]" placeholder="Harga tambahan" class="mb-1" style="width: 100%;">
+                    </div>
+                </div>
+
+                <button type="button" onclick="tambahVarian()" class="btn btn-sm btn-outline-dark mt-1"
+                    style="width: auto; padding: 4px 12px !important;">Tambah Varian</button>
+
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark mt-3">Kirim</button>
             </form>
@@ -172,4 +184,16 @@ if (isset($_POST["submit"])) {
             this.value = this.value.slice(0, -1); // hapus karakter terakhir
         }
     });
+
+    function tambahVarian() {
+        const container = document.getElementById('varian-container');
+        const div = document.createElement('div');
+        div.className = 'varian-field mb-2';
+        div.innerHTML = `
+            <input type="text" name="takaran[]" placeholder="Takaran (contoh: 800 gram)" style="width: 100%;" class="mb-1">
+            <input type="text" name="harga_tambahan[]" placeholder="Harga tambahan" style="width: 100%;" class="mb-1">
+            <button type="button" onclick="this.parentElement.remove()" class="btn btn-sm btn-danger mt-1" style="width: auto; padding: 2px 8px !important;">Hapus</button>
+        `;
+        container.appendChild(div);
+    }
 </script>
