@@ -16,10 +16,8 @@ if (!isset($_GET["id_bahan"]) || !is_numeric(($_GET["id_bahan"]))) { //is_numeri
 
 $id_bahan = (int)$_GET["id_bahan"];
 $bahan = query("SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan")[0];
-$varian = query("SELECT * FROM menu_varian WHERE fk_menu_varian = $id_menu");
-
-// ambil id menu dari data bahan (fk_bahan_menu)
 $id_menu = $bahan['fk_menu_bahan'];
+$varian = query("SELECT * FROM menu_varian WHERE fk_menu_varian = $id_menu");
 
 // ambil nama menu untuk ditampilkan
 if ($id_menu > 0) {
