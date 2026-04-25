@@ -17,17 +17,20 @@ if ($id_pesanan == 0) {
 }
 
 $pesanan = query("SELECT 
-    p.id_pesanan, p.jumlah, p.tanggal_pesan, p.tanggal_antar,
-    p.catatan_khusus_pemesanan,
+    p.id_pesanan, p.jumlah, p.harga_total, p.tanggal_pesan, p.tanggal_antar,
+    p.catatan_khusus_pemesanan, p.metode_pengantaran,
     mv.takaran, m.nama_menu, m.gambar_menu,
-    c.nama_pelanggan
-    dp.packing
+    c.nama_pelanggan, c.alamat,
+    MIN(dp.packing) as packing,
+    GROUP_CONCAT(bb.nama_bahan, ' ', dp.jumlah_dipakai, ' ', bb.satuan SEPARATOR ', ') as bahan_baku
 FROM pesanan p
 JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
 JOIN menu m ON mv.fk_menu_varian = m.id_menu
 JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
-JOIN detail_pesanan_bahan dp ON 
-WHERE p.id_pesanan = $id_pesanan");
+LEFT JOIN detail_pesanan_bahan dp ON dp.fk_detail_pesanan = p.id_pesanan
+LEFT JOIN bahan_baku bb ON dp.fk_bahan_detail = bb.id_bahan
+WHERE p.id_pesanan = $id_pesanan
+GROUP BY p.id_pesanan");
 
 // Cek apakah data ditemukan
 if (count($pesanan) == 0) {
@@ -77,11 +80,15 @@ $row = $pesanan[0]; // Ambil data pertama
                             </div>
                             <p class="card-text mt-4 mb-3"><strong>Menu dipesan:</strong> <br><?= $row['nama_menu'] ?></p>
                             <p class="card-text mb-3"><strong>Jumlah pesan:</strong> <br><?= $row['jumlah'] . $row['packing'] ?></p>
+                            <p class="card-text mb-3"><strong>Harga Total:</strong> <br>Rp <?= number_format($row['harga_total'], 0, ',', '.') ?></p>
                             <p class="card-text mb-3"><strong>Catatan</strong><br> <?= $row['catatan_khusus_pemesanan'] ?></p>
                             <p class="card-text mb-3"><strong>Takaran:</strong><br> <?= $row['takaran'] ?></p>
+                            <p class="card-text mb-3"><strong>Packing <?= $row['packing'] ?></strong></p>
                             <p class="card-text mb-3"><strong>Nama Pelanggan:</strong><br> <?= $row['nama_pelanggan'] ?></p>
+                            <p class="card-text mb-3"><strong>Alamat:</strong><br> <?= $row['alamat'] ?></strong></p>
                             <p class="card-text mb-2"><strong>Dipesan pada <?= $row['tanggal_pesan'] ?></strong></p>
                             <p class="card-text mb-3"><strong>Pesanan untuk <?= $row['tanggal_antar'] ?></strong></p>
+                            <p class="card-text mb-3"><strong>Bahan Baku:</strong><br> <?= $row['bahan_baku'] ?></p>
                         </div>
                     </div>
                     <!-- Tombol Edit dan Hapus -->
