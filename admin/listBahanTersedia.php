@@ -8,7 +8,7 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
-$bahan_tersedia = query("SELECT * FROM stok_bahan");
+$bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok ASC");
 ?>
 
 <!DOCTYPE html>
