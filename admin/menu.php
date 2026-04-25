@@ -8,7 +8,13 @@ if (!isset($_SESSION["login"])) {
 }
 
 require '../functions.php';
-$menu = query("SELECT * FROM menu ORDER BY nama_menu ASC");
+$menu = query("SELECT m.id_menu, m.nama_menu, m.harga_menu, m.gambar_menu,
+GROUP_CONCAT(CONCAT(mv.takaran, ' (Rp', mv.harga_varian, ')') 
+ORDER BY mv.id_varian SEPARATOR ', ') as takaran
+FROM menu m 
+LEFT JOIN menu_varian mv ON m.id_menu = mv.fk_menu_varian 
+GROUP BY m.id_menu
+ORDER BY m.nama_menu ASC");
 
 ?>
 
@@ -58,6 +64,7 @@ $menu = query("SELECT * FROM menu ORDER BY nama_menu ASC");
                                     <div class="card-body">
                                         <h5 class="card-title"><?= $row['nama_menu'] ?></h5>
                                         <p class="card-text"><?= $row['harga_menu'] ?></p>
+                                        <p class="card-text"><small class="text-muted"><?= $row['takaran'] ?></small></p>
                                     </div>
                                 </div>
                             </a>
