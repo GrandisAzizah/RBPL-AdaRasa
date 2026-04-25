@@ -67,19 +67,45 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan");
             <p class="text-center mt-5" style="color: #979696; margin-top: 20px; height: 70vh; display: flex; align-items: center; justify-content: center;">Belum ada data stok bahan baku yang ditambahkan</p>
         <?php else: ?>
             <?php foreach ($bahan_tersedia as $b): ?>
-                <div class="card-order">
-                    <div class="row g-0">
+                <div class="card-bahan">
+                    <div class="row g-0 align-items-center">
                         <!-- Isi -->
-                        <div class="col-auto">
-                            <div class="card-body">
-                                <h5 class="card-title"><?= $b['nama_bahan_stok'] ?></h5>
-                                <p class="card-text">Stok: <?= $b['stok_tersedia'] . ' ' . $b['satuan'] ?></p>
+                        <div class="col">
+                            <div class="card-body-bahan">
+                                <h5 class="card-title-bahan"><?= $b['nama_bahan_stok'] ?></h5>
+                                <p class="card-text-bahan">Stok: <?= $b['stok_tersedia'] . ' ' . $b['satuan'] ?></p>
                             </div>
+                        </div>
+                        <div class="col-auto me-3">
+                            <a href="editStokTersedia.php?id_stok=<?= $b['id_stok'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
+                            <a href="#" class="delete-btn btn btn-danger btn-sm" onclick="setHapusUrl('hapusStokBahan.php?id_stok=<?= $b['id_stok'] ?>')">Hapus</a>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
+
+        <!-- Modal Konfirmasi Hapus -->
+        <div class="modal fade" id="modalHapus" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center p-4">
+                        <p>Yakin ingin menghapus bahan ini?</p>
+                        <div class="d-flex justify-content-center gap-3 mt-3">
+                            <button class="btn btn-dark" data-bs-dismiss="modal" style="width: auto !important; height: auto !important; padding: 6px 20px !important;">Tidak</button>
+                            <a id="btnYaHapus" href="#" class="btn btn-danger" style="width: auto !important; height: auto !important; padding: 6px 20px !important;">Ya</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function setHapusUrl(url) {
+                document.getElementById('btnYaHapus').href = url;
+                new bootstrap.Modal(document.getElementById('modalHapus')).show();
+            }
+        </script>
 </body>
 
 </html>
