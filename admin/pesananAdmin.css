@@ -102,6 +102,34 @@ body {
      border-color: #79747E !important;
 }
 
+.card-bahan {
+    outline: black solid 1.2px;
+    margin: 20px auto;
+    border-radius: 5px;
+    width: 330px;
+    /* HAPUS height: 60px; jika ada */
+    overflow: hidden;
+}
+
+.card-bahan .row {
+    align-items: center;
+}
+
+.card-body-bahan {
+    padding: 8px 10px;
+}
+
+.card-title-bahan {
+    font-size: 13px;
+    font-weight: 650;
+    margin-bottom: 2px;
+}
+
+.card-text-bahan {
+    font-size: 11px;
+    margin-bottom: 0;
+}
+
 .card-order {
     outline: black solid 1.2px;
     margin: 20px auto;
