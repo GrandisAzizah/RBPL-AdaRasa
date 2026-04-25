@@ -71,28 +71,28 @@ $pesanan = query("SELECT
             </div>
         </div>
 
-        <!-- card untuk pesanan -->
-        <!-- card untuk pelanggan -->
         <?php if (count($pesanan) == 0) : ?>
             <p class="text-center mt-5" style="color: #979696; margin-top: 20px; height: 70vh; display: flex; align-items: center; justify-content: center;">Belum ada data pesanan yang ditambahkan</p>
         <?php else : ?>
             <?php foreach ($pesanan as $row) : ?>
-                <div class="card-order">
-                    <div class="row g-0">
-                        <!-- Isi -->
-                        <div class="col-auto">
-                            <div class="card-body">
-                                <h5 class="card-title"><?= $row['nama_menu'] ?></h5>
-                                <p class="card-text"><?= $row['takaran'] ?></p>
+                <a href="showDetailPesananAdmin.php?id_pesanan=<?= $row['id_pesanan'] ?>" class="card-order">
+                    <div class="card-order">
+                        <div class="row g-0">
+                            <!-- Isi -->
+                            <div class="col-auto">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= $row['nama_menu'] ?></h5>
+                                    <p class="card-text"><?= $row['takaran'] ?></p>
+                                </div>
+                            </div>
+
+                            <!-- Gambar -->
+                            <div class="order-img col">
+                                <img src="<?= $row['gambar_menu'] ?>" class="" alt="...">
                             </div>
                         </div>
-
-                        <!-- Gambar -->
-                        <div class="order-img col">
-                            <img src="<?= $row['gambar_menu'] ?>" class="" alt="...">
-                        </div>
                     </div>
-                </div>
+                </a>
             <?php endforeach; ?>
         <?php endif; ?>
 </body>
