@@ -419,9 +419,36 @@ function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesa
 {
     global $conn;
 
-    // Loop bahan default (yang sudah ada)
+    // Loop bahan default
     foreach ($bahan_dipilih as $id_bahan) {
-        // ... kode yang sudah ada
+        $result = mysqli_query($conn, "SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
+        $bahan = mysqli_fetch_assoc($result);
+
+        if ($bahan) {
+            $jumlah_dipakai = $bahan['jumlah_default'] * $jumlah_pesanan;
+
+            $queryStok = "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '{$bahan['nama_bahan']}' LIMIT 1";
+            $resultStok = mysqli_query($conn, $queryStok);
+            $stok = mysqli_fetch_assoc($resultStok);
+
+            if (!$stok) continue;
+
+            $id_stok = $stok['id_stok'];
+
+            mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
+                fk_detail_pesanan,
+                fk_stok_detail,
+                fk_bahan_detail,
+                jumlah_dipakai,
+                packing
+            ) VALUES (
+                '$id_pesanan',
+                '$id_stok',
+                '$id_bahan',
+                '$jumlah_dipakai',
+                '$packing'
+            )");
+        }
     }
 
     // Loop bahan tambahan dari session
@@ -430,17 +457,25 @@ function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesa
         $bt = $bahan_tambahan_session[$i];
         $nama = mysqli_real_escape_string($conn, $bt['nama_bahan']);
         $jumlah_dipakai = $bt['jumlah'] * $jumlah_pesanan;
-        $satuan = mysqli_real_escape_string($conn, $bt['satuan']);
 
-        // Cari id_stok
         $cek = mysqli_query($conn, "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama' LIMIT 1");
         $stok = mysqli_fetch_assoc($cek);
         if (!$stok) continue;
 
         $id_stok = $stok['id_stok'];
-        mysqli_query($conn, "INSERT INTO detail_pesanan_bahan 
-            (fk_detail_pesanan, fk_detail_stok, fk_bahan_detail, jumlah_dipakai, packing)
-            VALUES ('$id_pesanan', '$id_stok', NULL, '$jumlah_dipakai', '$packing')");
+        mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
+            fk_detail_pesanan,
+            fk_stok_detail,
+            fk_bahan_detail,
+            jumlah_dipakai,
+            packing
+        ) VALUES (
+            '$id_pesanan',
+            '$id_stok',
+            NULL,
+            '$jumlah_dipakai',
+            '$packing'
+        )");
     }
 
     return mysqli_affected_rows($conn);
@@ -449,26 +484,28 @@ function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesa
 function editPesanan($data)
 {
     global $conn;
+    $id_pesanan = (int)$data['id_pesanan'];
+    $fk_customer = (int)$data['fk_customer'];
+    $fk_pesanan_varian = (int)$data['fk_pesanan_varian'];
+    $jumlah = (int)$data['jumlah'];
+    $catatan = mysqli_real_escape_string($conn, $data['catatan_khusus_pemesanan']);
+    $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
+    $metode = mysqli_real_escape_string($conn, $data['metode_pengantaran']);
+    $status = mysqli_real_escape_string($conn, $data['status_pemesanan']);
 
-    $id_pesanan = htmlspecialchars($data['id_pesanan']);
-    $nama_pelanggan = htmlspecialchars($data['nama_pelanggan']);
-    $fk_menu = htmlspecialchars($data['fk_menu']);
-    $porsi = htmlspecialchars($data['porsi']);
-    $harga_menu = htmlspecialchars($data['harga_menu']);
-    $harga_total = htmlspecialchars($data['harga_menu']) * htmlspecialchars($data['porsi']);
-    $status_pemesanan = htmlspecialchars($data['status_pemesanan']);
-    $tanggal_pesan = htmlspecialchars($data['tanggal_pesan']);
-    $catatan_khusus_pemesanan = htmlspecialchars($data['catatan_khusus_pemesanan']);
-    $tanggal_antar = htmlspecialchars($data['tanggal_antar']);
+    $fk_menu = (int)$data['fk_menu'];
+    $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
+    $harga_total = $harga_satuan * $jumlah;
 
     $query = "UPDATE pesanan SET
-               nama_pelanggan = '$nama_pelanggan',
-               porsi = '$porsi',
-               harga_menu = '$harga_menu',
-               status_pemesanan = '$status_pemesanan',
-               tanggal_pesan = '$tanggal_pesan',
-               catatan_khusus_pemesanan = '$catatan_khusus_pemesanan',
-               tanggal_antar = '$tanggal_antar'
+                fk_pesanan_customer = '$fk_customer',
+                fk_pesanan_varian = '$fk_pesanan_varian',
+                jumlah = '$jumlah',
+                harga_total = '$harga_total',
+                catatan_khusus_pemesanan = '$catatan',
+                tanggal_antar = '$tanggal_antar',
+                metode_pengantaran = '$metode',
+                status_pemesanan = '$status'
               WHERE id_pesanan = $id_pesanan";
 
     mysqli_query($conn, $query);
