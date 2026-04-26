@@ -8,6 +8,38 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
+$id_pesanan = (int)$_GET['id_pesanan'];
+$pesanan = query("SELECT p.*, mv.fk_menu_varian as fk_menu 
+    FROM pesanan p 
+    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+    WHERE p.id_pesanan = $id_pesanan")[0];
+
+$id_menu = $pesanan['fk_menu'];
+$fk_varian = $pesanan['fk_pesanan_varian'];
+$jumlah = $pesanan['jumlah'];
+$bahan = query("SELECT * FROM bahan_baku 
+    WHERE fk_menu_bahan = $id_menu 
+    AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
+
+$pelanggan = query("SELECT * FROM customer");
+$menu = query("SELECT * FROM menu");
+$varian = query("SELECT * FROM menu_varian");
+
+$pesan = '';
+$tipe = '';
+
+if (isset($_POST["submit"])) {
+    // Proses update pesanan
+    $hasil = editPesanan($_POST);
+    if ($hasil > 0) {
+        $pesan = 'Data berhasil diedit!';
+        $tipe = 'success';
+    } else {
+        $pesan = 'Data gagal diedit!';
+        $tipe = 'danger';
+    }
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -130,13 +162,10 @@ require '../functions.php';
             <form id="form-pesanan" method="POST">
                 <!-- INPUT NAMA MENU -->
                 <label for="nama_pelanggan">Nama Pelanggan</label>
-                <select name="nama_pelanggan" id="nama_pelanggan" maxlength="30" required>
-                    <?php
-                    $pelanggan = query("SELECT * FROM customer ORDER BY nama_pelanggan ASC");
-                    foreach ($pelanggan as $row):
-                    ?>
-                        <option value="<?= $row['id_pelanggan']; ?>">
-                            <?= $row['nama_pelanggan']; ?>
+                <select name="nama_pelanggan" required>
+                    <?php foreach ($pelanggan as $p): ?>
+                        <option value="<?= $p['id_pelanggan'] ?>" <?= $p['id_pelanggan'] == $pesanan['fk_pesanan_customer'] ? 'selected' : '' ?>>
+                            <?= $p['nama_pelanggan'] ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -157,7 +186,7 @@ require '../functions.php';
 
                 <!-- INPUT JUMLAH -->
                 <label for="jumlah">Jumlah:<br></label>
-                <input type="number" name="jumlah" id="jumlah" min="0" max="100" step="1" required
+                <input type="text" name="jumlah" value="<?= $jumlah ?>" id="jumlah" min="0" max="100" step="1" required
                     oninput="this.value = Math.floor(this.value); if(this.value < 0) this.value = 0; if(this.value > 500) this.value = 500;">
 
                 <div class="packing-takaran-item">
