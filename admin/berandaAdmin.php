@@ -71,12 +71,12 @@ $tipe = 'info';
 </head>
 
 <body>
-    <p>Halo, ADMIN!</p>
+    <p class="header-text">Halo, ADMIN!</p>
 
     <div class="container-main">
         <?php if ($pesan): ?>
             <a href="pesanan.php" style="color: inherit;">
-                <div class="mt-3 mb-3 text-center alert alert- <?= $tipe ?> alert-dismissible fade show" role="alert">
+                <div class="mb-3 text-center alert alert- <?= $tipe ?> alert-dismissible fade show" role="alert">
                     <div class="col">
                         <strong>Informasi</strong><br>
                         <?= $pesan ?>
@@ -158,7 +158,7 @@ $tipe = 'info';
                                         <p class="card-title">
                                             <?= $p['nama_pelanggan'] ?> - <?= $p['nama_menu'] ?>
                                         </p>
-                                        <p class="card-detail"><?= $p['takaran'] ?></p>
+                                        <p class="card-detail"><?= $p['tanggal_antar'] ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -185,11 +185,11 @@ $tipe = 'info';
             <div class="container-bahan-baku">
                 <div class="card">
                     <?php foreach ($bahan_perlu_beli as $i => $b): ?>
-                        <div class="d-flex justify-content-between align-items-center px-3 py-1">
-                            <p class="mb-0" style="font-size: 13px;">
-                                <?= $b['nama_bahan'] ?> - Perlu beli: <?= $b['perlu_beli'] ?> <?= $b['satuan'] ?>
+                        <div class="d-flex justify-content-between align-items-center px-3 py-2 bahan-item">
+                            <p class="mb-0">
+                                <?= $b['nama_bahan'] ?> - <?= $b['perlu_beli'] ?> <?= $b['satuan'] ?>
                             </p>
-                            <input type="checkbox" class="form-check-input flex-shrink-0 ms-2">
+                            <input type="checkbox" class="form-check-input">
                         </div>
                     <?php endforeach; ?>
                 </div>
