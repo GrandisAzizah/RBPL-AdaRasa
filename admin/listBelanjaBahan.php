@@ -7,6 +7,27 @@ if (!isset($_SESSION["login"])) {
 }
 
 require '../functions.php';
+
+$bahan_perlu_beli = query("SELECT * FROM (
+    SELECT 
+        bb.nama_bahan,
+        bb.satuan,
+        SUM(dpb.jumlah_dipakai) as total_butuh,
+        COALESCE(sb.stok_tersedia, 0) as stok_tersedia,
+        (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia, 0)) as perlu_beli,
+        m.nama_menu,
+        c.nama_pelanggan
+    FROM detail_pesanan_bahan dpb
+    JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
+    JOIN pesanan p ON dpb.fk_detail_pesanan = p.id_pesanan
+    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+    JOIN menu m ON mv.fk_menu_varian = m.id_menu
+    JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+    LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
+    GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan, m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
+) as subquery
+WHERE total_butuh > stok_tersedia");
+
 ?>
 
 <!DOCTYPE html>
@@ -21,6 +42,28 @@ require '../functions.php';
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="pesananAdmin.css">
 </head>
+
+<style>
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        margin: 0 !important;
+        margin-right: 20px !important;
+        border-color: #6750A4 !important;
+    }
+
+    input[type="checkbox"]:checked {
+        background-color: #6750A4;
+        border: 1px solid #6750A4 !important;
+        box-shadow: none !important;
+    }
+
+    input[type="checkbox"]:focus {
+        outline: #6750A4 !important;
+        box-shadow: none !important;
+        border-color: #6750A4 !important;
+    }
+</style>
 
 <body>
     <div class="container-main">
@@ -59,18 +102,24 @@ require '../functions.php';
             <label class="btn btn-outline-primary" for="btnradio2"><a href="listBahanTersedia.php">List Bahan Tersedia</a></label>
         </div>
 
-        <?php if (empty($bahan_tersedia)): ?>
+        <?php if (empty($bahan_perlu_beli)): ?>
             <p class="text-center mt-5" style="color: #979696; margin-top: 20px; height: 70vh; display: flex; align-items: center; justify-content: center;">Belum ada data stok bahan baku yang perlu dibeli</p>
         <?php else: ?>
-            <?php foreach ($bahan_tersedia as $b): ?>
+            <?php foreach ($bahan_perlu_beli as $b): ?>
                 <div class="card-bahan">
                     <div class="row g-0">
                         <!-- Isi -->
-                        <div class="col-auto">
+                        <div class="col">
                             <div class="card-body-bahan">
-                                <h5 class="card-title-bahan"><?= $b['nama_bahan_stok'] ?></h5>
-                                <p class="card-text-bahan">Stok: <?= $b['stok_tersedia'] ?> . ' ' . <?= $b['satuan'] ?></p>
+                                <h5 class="card-title-bahan"><?= $b['nama_bahan'] ?></h5>
+                                <p class="card-text-bahan">Perlu Beli: <?= $b['perlu_beli'] . ' ' . $b['satuan'] ?></p>
+                                <p class="card-text-bahan text-muted" style="font-size: 10px;">
+                                    Untuk pesanan: <?= $b['nama_menu'] ?> - <?= $b['nama_pelanggan'] ?>
+                                </p>
                             </div>
+                        </div>
+                        <div class="col-auto">
+                            <input type="checkbox" class="form-check-input" id="checkbox-<?= $b['nama_bahan'] ?>">
                         </div>
                     </div>
                 </div>
