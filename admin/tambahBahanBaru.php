@@ -7,17 +7,52 @@ if (!isset($_SESSION["login"])) {
 require '../functions.php';
 
 if (isset($_POST['submit'])) {
+    $nama   = mysqli_real_escape_string($conn, trim($_POST['nama_bahan']));
+    $jumlah = floatval($_POST['jumlah']);
+    $satuan = mysqli_real_escape_string($conn, $_POST['satuan']);
+
+    $cekStok = mysqli_query(
+        $conn,
+        "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama' LIMIT 1"
+    );
+    $rowStok = mysqli_fetch_assoc($cekStok);
+    if ($rowStok) {
+        $idStok = $rowStok['id_stok'];
+    } else {
+        mysqli_query(
+            $conn,
+            "INSERT INTO stok_bahan (nama_bahan_stok, stok_tersedia, satuan)
+             VALUES ('$nama', 0, '$satuan')"
+        );
+        $idStok = mysqli_insert_id($conn);
+    }
+
+    mysqli_query(
+        $conn,
+        "INSERT INTO bahan_baku
+            (nama_bahan, jumlah_default, satuan,
+             fk_menu_bahan, fk_bahan_stok, fk_varian_bahan)
+         VALUES
+            ('$nama', $jumlah, '$satuan',
+             NULL, $idStok, NULL)"
+    );
+    $idBahan = mysqli_insert_id($conn);
+
     $_SESSION['pesanan']['bahan_tambahan'][] = [
-        'nama_bahan' => htmlspecialchars($_POST['nama_bahan']),
-        'jumlah' => floatval($_POST['jumlah']),
-        'satuan' => htmlspecialchars($_POST['satuan'])
+        'id_bahan'   => $idBahan,
+        'nama_bahan' => $nama,
+        'jumlah'     => $jumlah,
+        'satuan'     => $satuan
     ];
-    header('location: inputBahanPesan.php');
+
+    header('Location: inputBahanPesan.php');
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,20 +60,54 @@ if (isset($_POST['submit'])) {
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <title>Tambah Bahan</title>
     <style>
-        body { font-family: 'Aleo', serif; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 290px; padding: 20px; border-radius: 8px; outline: black solid 1px; }
-        input, select { width: 100%; padding: 4px; margin-top: 5px; border: 1px solid #B3B3B3; border-radius: 4px; margin-bottom: 8px; }
-        label { font-weight: 600; margin-top: 5px; display: block; }
-        button { width: 100%; }
-        select { appearance: none; -webkit-appearance: none; background-color: #fff; }
+        body {
+            font-family: 'Aleo', serif;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 290px;
+            padding: 20px;
+            border-radius: 8px;
+            outline: black solid 1px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 4px;
+            margin-top: 5px;
+            border: 1px solid #B3B3B3;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            margin-top: 5px;
+            display: block;
+        }
+
+        button {
+            width: 100%;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-color: #fff;
+        }
     </style>
 </head>
+
 <body>
     <div>
         <div style="display:flex; align-items:center; justify-content:center; position:relative;" class="mb-3">
             <a href="inputBahanPesan.php" style="position:absolute; left:0;">
                 <svg width="38" height="38" viewBox="0 0 38 38" fill="none">
-                    <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </a>
             <h5 style="margin:0;">Tambah Bahan</h5>
@@ -73,4 +142,5 @@ if (isset($_POST['submit'])) {
         </div>
     </div>
 </body>
+
 </html>
