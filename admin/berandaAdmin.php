@@ -143,26 +143,28 @@ $tipe = 'info';
             <p class="text-muted" style="font-size: 16px;">Belum ada pesanan</p>
         <?php else: ?>
             <?php foreach ($pesanan_terbaru as $p): ?>
-                <div class="container-order">
-                    <div class="order-data card mb-3">
-                        <div class="row g-0">
-                            <!-- Gambar -->
-                            <div class="col-auto">
-                                <img src="<?= $p['gambar_menu'] ?>" class="order-img" alt="...">
-                            </div>
+                <a href="showDetailPesananAdmin.php?id_pesanan=<?= $p['id_pesanan'] ?>" style="text-decoration: none; color: inherit;">
+                    <div class="container-order">
+                        <div class="order-data card mb-3">
+                            <div class="row g-0">
+                                <!-- Gambar -->
+                                <div class="col-auto">
+                                    <img src="<?= $p['gambar_menu'] ?>" class="order-img" alt="...">
+                                </div>
 
-                            <!-- Detail -->
-                            <div class="col">
-                                <div class="card-body">
-                                    <p class="card-title">
-                                        <?= $p['nama_pelanggan'] ?> - <?= $p['nama_menu'] ?>
-                                    </p>
-                                    <p class="card-detail"><?= $p['takaran'] ?></p>
+                                <!-- Detail -->
+                                <div class="col">
+                                    <div class="card-body">
+                                        <p class="card-title">
+                                            <?= $p['nama_pelanggan'] ?> - <?= $p['nama_menu'] ?>
+                                        </p>
+                                        <p class="card-detail"><?= $p['takaran'] ?></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                </a>
             <?php endforeach; ?>
             <button type="button" class="load-more-button" data-bs-toggle="modal" data-bs-target="">
                 <span> More</span>
