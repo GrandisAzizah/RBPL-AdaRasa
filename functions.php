@@ -361,7 +361,10 @@ function tambahPesanan($data)
     global $conn;
 
     $fk_customer = (int)$data['fk_customer'];
-    $fk_pesanan_varian = (int)$data['fk_pesanan_varian'];
+    $fk_pesanan_varian = isset($data['fk_pesanan_varian']) && $data['fk_pesanan_varian'] !== null
+        ? (int)$data['fk_pesanan_varian']
+        : null;
+    $fk_varian_value = is_null($fk_pesanan_varian) ? "NULL" : "'$fk_pesanan_varian'";
     $jumlah = (int)$data['jumlah'];
     $catatan = mysqli_real_escape_string($conn, $data['catatan']);
     $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
@@ -394,7 +397,7 @@ function tambahPesanan($data)
         '$catatan',
         '$metode',
         '$tanggal_antar',
-        '$fk_pesanan_varian',
+        $fk_varian_value,
         '$fk_customer'
     )";
 
@@ -486,7 +489,9 @@ function editPesanan($data)
     global $conn;
     $id_pesanan = (int)$data['id_pesanan'];
     $fk_customer = (int)$data['fk_customer'];
-    $fk_pesanan_varian = (int)$data['fk_pesanan_varian'];
+    $fk_pesanan_varian = isset($data['fk_pesanan_varian']) && $data['fk_pesanan_varian'] !== null
+        ? (int)$data['fk_pesanan_varian']
+        : null;
     $jumlah = (int)$data['jumlah'];
     $catatan = mysqli_real_escape_string($conn, $data['catatan_khusus_pemesanan']);
     $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
