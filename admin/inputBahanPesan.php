@@ -12,9 +12,15 @@ $jumlah = $_SESSION['pesanan']['jumlah'] ?? 1;
 $id_menu = $_SESSION['pesanan']['fk_menu'] ?? 0;
 $fk_varian = $_SESSION['pesanan']['fk_pesanan_varian'] ?? 0;
 
-$bahan = query("SELECT * FROM bahan_baku 
-    WHERE fk_menu_bahan = $id_menu 
-    AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
+if (!empty($fk_varian)) {
+    $bahan = query("SELECT * FROM bahan_baku 
+        WHERE fk_menu_bahan = $id_menu 
+        AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
+} else {
+    $bahan = query("SELECT * FROM bahan_baku 
+        WHERE fk_menu_bahan = $id_menu 
+        AND fk_varian_bahan IS NULL");
+}
 
 $pesan = '';
 $tipe = '';
