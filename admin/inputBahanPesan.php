@@ -28,6 +28,9 @@ $tipe = '';
 if (isset($_POST["submit"])) {
     $packing = $_POST['packing'];
     $bahan_dipilih = $_POST['bahan'] ?? [];
+    // Simpan detail bahan dan packing
+    $bahan_tambahan_dipilih = $_POST['bahan_tambahan'] ?? [];
+    $bahan_tambahan_session = $_SESSION['pesanan']['bahan_tambahan'] ?? [];
 
     $dataPesanan = [
         'fk_customer' => $_SESSION['pesanan']['fk_customer'],
@@ -43,10 +46,6 @@ if (isset($_POST["submit"])) {
     $id_pesanan = tambahPesanan($dataPesanan);
 
     if ($id_pesanan > 0) {
-        // Simpan detail bahan dan packing
-        $bahan_tambahan_dipilih = $_POST['bahan_tambahan'] ?? [];
-        $bahan_tambahan_session = $_SESSION['pesanan']['bahan_tambahan'] ?? [];
-
         simpanDetailPesanan(
             $id_pesanan,
             $bahan_dipilih,
