@@ -8,27 +8,52 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
-$bahan_perlu_beli = query("SELECT * FROM (
-    SELECT 
-        bb.nama_bahan,
-        bb.satuan,
-        SUM(dpb.jumlah_dipakai) as total_butuh,
-        COALESCE(sb.stok_tersedia, 0) as stok_tersedia,
-        (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia, 0)) as perlu_beli,
-        m.nama_menu,
-        c.nama_pelanggan
-    FROM detail_pesanan_bahan dpb
-    JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
-    JOIN pesanan p ON dpb.fk_detail_pesanan = p.id_pesanan
-    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
-    LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
-    GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan, m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
-    ORDER BY bb.nama_bahan
-) as subquery
-WHERE total_butuh > stok_tersedia");
+// $bahan_perlu_beli = query("SELECT * FROM (
+//     SELECT 
+//         bb.nama_bahan,
+//         bb.satuan,
+//         SUM(dpb.jumlah_dipakai) as total_butuh,
+//         COALESCE(sb.stok_tersedia, 0) as stok_tersedia,
+//         (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia, 0)) as perlu_beli,
+//         m.nama_menu,
+//         c.nama_pelanggan
+//     FROM detail_pesanan_bahan dpb
+//     JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
+//     JOIN pesanan p ON dpb.fk_detail_pesanan = p.id_pesanan
+//     JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+//     JOIN menu m ON mv.fk_menu_varian = m.id_menu
+//     JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+//     LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
+//     GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan, m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
+//     ORDER BY bb.nama_bahan
+// ) as subquery
+// WHERE total_butuh > stok_tersedia");
 
+$bahan_perlu_beli = query("
+    SELECT *
+    FROM (
+    SELECT 
+            bb.id_bahan,
+            bb.nama_bahan,
+            bb.satuan,
+            SUM(dpb.jumlah_dipakai)            AS total_butuh,
+            COALESCE(sb.stok_tersedia, 0)      AS stok_tersedia,
+            (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia,0)) AS perlu_beli,
+            m.nama_menu,
+            c.nama_pelanggan
+        FROM detail_pesanan_bahan dpb
+        JOIN bahan_baku bb   ON dpb.fk_bahan_detail = bb.id_bahan
+        JOIN pesanan p       ON dpb.fk_detail_pesanan = p.id_pesanan
+        JOIN menu_varian mv  ON p.fk_pesanan_varian = mv.id_varian
+        JOIN menu m          ON mv.fk_menu_varian = m.id_menu
+        JOIN customer c     ON p.fk_pesanan_customer = c.id_pelanggan
+        LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
+        GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan,
+                 m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
+    ) AS sub
+    WHERE total_butuh > stok_tersedia
+    ORDER BY nama_bahan
+");
 ?>
 
 <!DOCTYPE html>
@@ -132,11 +157,16 @@ WHERE total_butuh > stok_tersedia");
         <?php endif; ?>
 
         <script>
+            function getCardElement(checkbox) {
+                return checkbox.closest('.card-bahan');
+            }
+
             document.querySelectorAll('.checkbox-bahan').forEach(cb => {
                 cb.addEventListener('change', function() {
-                    let nama = this.dataset.id;
-                    let jumlah = this.dataset.jumlah;
-                    let checked = this.checked ? 1 : 0;
+                    const nama = this.dataset.id;
+                    const jumlah = this.dataset.jumlah;
+                    const checked = this.checked ? 1 : 0;
+                    this.disabled = true;
 
                     fetch('updateStok.php', {
                             method: 'POST',
@@ -144,14 +174,33 @@ WHERE total_butuh > stok_tersedia");
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                nama: nama,
-                                jumlah: jumlah,
-                                checked: checked
+                                nama,
+                                jumlah,
+                                checked
                             })
                         })
                         .then(res => res.json())
                         .then(data => {
-                            console.log(data);
+                            if (data.success) {
+                                const card = getCardElement(this);
+                                if (card) {
+                                    card.style.transition = 'opacity .3s, height .3s, margin .3s';
+                                    card.style.opacity = '0';
+                                    card.style.height = '0';
+                                    card.style.margin = '0';
+                                    setTimeout(() => card.remove(), 300);
+                                }
+                            } else {
+                                alert(data.message || 'Gagal memperbarui stok');
+                                this.checked = !this.checked;
+                                this.disabled = false;
+                            }
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Terjadi error jaringan');
+                            this.checked = !this.checked;
+                            this.disabled = false;
                         });
                 });
             });
