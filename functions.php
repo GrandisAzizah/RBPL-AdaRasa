@@ -98,14 +98,15 @@ function tambahMenu($data)
     // Konversi harga menu (bersihin dari non-angka)
     $harga_menu_clean = preg_replace('/[^0-9]/', '', $data["harga-menu"]);
     $harga_menu = intval($harga_menu_clean);
+    $kategori = htmlspecialchars($data["kategori"]);
 
     $gambar_menu = upload();
     if (!$gambar_menu) {
         return false;
     }
 
-    $query = "INSERT INTO menu (nama_menu, harga_menu, gambar_menu) 
-              VALUES ('$nama_menu', '$harga_menu', '$gambar_menu')";
+    $query = "INSERT INTO menu (nama_menu, harga_menu, gambar_menu, kategori_menu) 
+              VALUES ('$nama_menu', '$harga_menu', '$gambar_menu', '$kategori')";
     mysqli_query($conn, $query);
     $id_menu = mysqli_insert_id($conn);
 
@@ -199,6 +200,7 @@ function editMenu($data)
 
     $id_menu = $data["id_menu"];
     $nama_menu = htmlspecialchars($data["nama-menu"]);
+    $kategori = htmlspecialchars($data["kategori"]);
     $hargaRaw = $data["harga-menu"];
     $hargaClean = preg_replace('/[^0-9]/', '', $hargaRaw);
 
@@ -235,7 +237,8 @@ function editMenu($data)
     $query = "UPDATE menu SET
                 nama_menu = '$nama_menu',
                 harga_menu = '$harga',
-                gambar_menu = '$gambar_menu'
+                gambar_menu = '$gambar_menu',
+                kategori_menu = '$kategori'
               WHERE id_menu = $id_menu";
     mysqli_query($conn, $query);
 
@@ -418,71 +421,168 @@ function hapusPesanan($id_pesanan)
     return mysqli_affected_rows($conn);
 }
 
-function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesanan, $bahan_tambahan_dipilih = [], $bahan_tambahan_session = [])
-{
+function simpanDetailPesanan(
+    $id_pesanan,
+    $bahan_dipilih,
+    $packing,
+    $jumlah_pesanan,
+    $bahan_tambahan_idx = [],
+    $bahan_tambahan_sess = []
+) {
     global $conn;
-
-    // Loop bahan default
+    $inserted = 0;
     foreach ($bahan_dipilih as $id_bahan) {
-        $result = mysqli_query($conn, "SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
-        $bahan = mysqli_fetch_assoc($result);
-
-        if ($bahan) {
-            $jumlah_dipakai = $bahan['jumlah_default'] * $jumlah_pesanan;
-
-            $queryStok = "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '{$bahan['nama_bahan']}' LIMIT 1";
-            $resultStok = mysqli_query($conn, $queryStok);
-            $stok = mysqli_fetch_assoc($resultStok);
-
-            if (!$stok) continue;
-
-            $id_stok = $stok['id_stok'];
-
-            mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
-                fk_detail_pesanan,
-                fk_stok_detail,
-                fk_bahan_detail,
-                jumlah_dipakai,
-                packing
-            ) VALUES (
-                '$id_pesanan',
-                '$id_stok',
-                '$id_bahan',
-                '$jumlah_dipakai',
-                '$packing'
-            )");
+        $sql = "SELECT id_bahan, nama_bahan, jumlah_default, satuan
+                     FROM bahan_baku
+                     WHERE id_bahan = $id_bahan LIMIT 1";
+        $res = mysqli_query($conn, $sql);
+        $b   = mysqli_fetch_assoc($res);
+        if (!$b) {
+            continue;
         }
+        $jumlah_dipakai = $b['jumlah_default'] * $jumlah_pesanan;
+
+        $sqlStok = "SELECT id_stok
+                    FROM stok_bahan
+                    WHERE nama_bahan_stok = '{$b['nama_bahan']}' LIMIT 1";
+        $resStok = mysqli_query($conn, $sqlStok);
+        $stok    = mysqli_fetch_assoc($resStok);
+        if (!$stok) {
+            continue;
+        }
+
+        $stmt = mysqli_prepare(
+            $conn,
+            "INSERT INTO detail_pesanan_bahan
+                (fk_detail_pesanan, fk_bahan_detail, fk_stok_detail,
+                 packing, jumlah_dipakai)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        mysqli_stmt_bind_param(
+            $stmt,
+            "iiids",
+            $id_pesanan,
+            $b['id_bahan'],
+            $stok['id_stok'],
+            $packing,
+            $jumlah_dipakai
+        );
+        mysqli_stmt_execute($stmt);
+        $inserted += mysqli_stmt_affected_rows($stmt);
+        mysqli_stmt_close($stmt);
     }
 
-    // Loop bahan tambahan dari session
-    foreach ($bahan_tambahan_dipilih as $i) {
-        if (!isset($bahan_tambahan_session[$i])) continue;
-        $bt = $bahan_tambahan_session[$i];
-        $nama = mysqli_real_escape_string($conn, $bt['nama_bahan']);
+    foreach ($bahan_tambahan_idx as $idx) {
+
+        if (!isset($bahan_tambahan_sess[$idx])) {
+            continue;
+        }
+        $bt = $bahan_tambahan_sess[$idx];
         $jumlah_dipakai = $bt['jumlah'] * $jumlah_pesanan;
 
-        $cek = mysqli_query($conn, "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama' LIMIT 1");
-        $stok = mysqli_fetch_assoc($cek);
-        if (!$stok) continue;
+        $nama = mysqli_real_escape_string($conn, $bt['nama_bahan']);
+        $sqlStok = "SELECT id_stok
+                    FROM stok_bahan
+                    WHERE nama_bahan_stok = '$nama' LIMIT 1";
+        $resStok = mysqli_query($conn, $sqlStok);
+        $stok    = mysqli_fetch_assoc($resStok);
+        if (!$stok) {
+            mysqli_query(
+                $conn,
+                "INSERT INTO stok_bahan (nama_bahan_stok, stok_tersedia, satuan)
+                 VALUES ('$nama', 0, '{$bt['satuan']}')"
+            );
+            $stok['id_stok'] = mysqli_insert_id($conn);
+        }
 
-        $id_stok = $stok['id_stok'];
-        mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
-            fk_detail_pesanan,
-            fk_stok_detail,
-            fk_bahan_detail,
-            jumlah_dipakai,
-            packing
-        ) VALUES (
-            '$id_pesanan',
-            '$id_stok',
-            NULL,
-            '$jumlah_dipakai',
-            '$packing'
-        )");
+        $stmt = mysqli_prepare(
+            $conn,
+            "INSERT INTO detail_pesanan_bahan
+                (fk_detail_pesanan, fk_bahan_detail, fk_stok_detail,
+                 packing, jumlah_dipakai)
+             VALUES (?, ?, ?, ?, ?)"
+        );
+        mysqli_stmt_bind_param(
+            $stmt,
+            "iiids",
+            $id_pesanan,
+            $bt['id_bahan'],
+            $stok['id_stok'],
+            $packing,
+            $jumlah_dipakai
+        );
+        mysqli_stmt_execute($stmt);
+        $inserted += mysqli_stmt_affected_rows($stmt);
+        mysqli_stmt_close($stmt);
     }
-
-    return mysqli_affected_rows($conn);
+    return $inserted;
 }
+
+// function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesanan, $bahan_tambahan_dipilih = [], $bahan_tambahan_session = [])
+// {
+//     global $conn;
+
+//     // Loop bahan default
+//     foreach ($bahan_dipilih as $id_bahan) {
+//         $result = mysqli_query($conn, "SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
+//         $bahan = mysqli_fetch_assoc($result);
+
+//         if ($bahan) {
+//             $jumlah_dipakai = $bahan['jumlah_default'] * $jumlah_pesanan;
+
+//             $queryStok = "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '{$bahan['nama_bahan']}' LIMIT 1";
+//             $resultStok = mysqli_query($conn, $queryStok);
+//             $stok = mysqli_fetch_assoc($resultStok);
+
+//             if (!$stok) continue;
+
+//             $id_stok = $stok['id_stok'];
+
+//             mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
+//                 fk_detail_pesanan,
+//                 fk_stok_detail,
+//                 fk_bahan_detail,
+//                 jumlah_dipakai,
+//                 packing
+//             ) VALUES (
+//                 '$id_pesanan',
+//                 '$id_stok',
+//                 '$id_bahan',
+//                 '$jumlah_dipakai',
+//                 '$packing'
+//             )");
+//         }
+//     }
+
+//     // Loop bahan tambahan dari session
+//     foreach ($bahan_tambahan_dipilih as $i) {
+//         if (!isset($bahan_tambahan_session[$i])) continue;
+//         $bt = $bahan_tambahan_session[$i];
+//         $nama = mysqli_real_escape_string($conn, $bt['nama_bahan']);
+//         $jumlah_dipakai = $bt['jumlah'] * $jumlah_pesanan;
+
+//         $cek = mysqli_query($conn, "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama' LIMIT 1");
+//         $stok = mysqli_fetch_assoc($cek);
+//         if (!$stok) continue;
+
+//         $id_stok = $stok['id_stok'];
+//         mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
+//             fk_detail_pesanan,
+//             fk_stok_detail,
+//             fk_bahan_detail,
+//             jumlah_dipakai,
+//             packing
+//         ) VALUES (
+//             '$id_pesanan',
+//             '$id_stok',
+//             NULL,
+//             '$jumlah_dipakai',
+//             '$packing'
+//         )");
+//     }
+
+//     return mysqli_affected_rows($conn);
+// }
 
 function editPesanan($data)
 {
