@@ -153,6 +153,15 @@ if (isset($_POST["submit"])) {
                 <label for="harga-menu">Harga Menu:<br></label>
                 <input type="number" name="harga-menu" id="harga-menu" min="0" max="999999" required><br><br>
 
+                <label for="kategori">Kategori Menu:<br></label>
+                <select name="kategori" id="kategori" required>
+                    <option value="">Pilih Kategori</option>
+                    <option value="Makanan">Nasi Box</option>
+                    <option value="Minuman">Kue Kering</option>
+                    <option value="Minuman">Cake</option>
+                    <option value="Minuman">Kue Brownies</option>
+                </select><br><br>
+
                 <!-- INPUT GAMBAR -->
                 <label for="gambar-menu">Gambar:<br></label>
                 <input type="file" name="gambar-menu" id="gambar-menu" required><br><br>
