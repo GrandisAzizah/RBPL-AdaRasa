@@ -165,14 +165,14 @@ if (isset($_POST["submit"])) {
                     Harga tidak valid. Harus dalam rentang 0 - 999999
                 </small>
 
-                <label for="kategori">Kategori Menu:<br></label>
+                <label for="kategori">Kategori Menu:<br></label><br>
                 <select name="kategori" id="kategori" required>
                     <option value="">Pilih Kategori</option>
-                    <option value="Nasi Box" <?= ($m["kategori_menu"] == "Nasi Box") ? "selected" : "" ?>>Nasi Box</option>
-                    <option value="Kue Kering" <?= ($m["kategori_menu"] == "Kue Kering") ? "selected" : "" ?>>Kue Kering</option>
-                    <option value="Cake" <?= ($m["kategori_menu"] == "Cake") ? "selected" : "" ?>>Cake</option>
-                    <option value="Kue Brownies" <?= ($m["kategori_menu"] == "Kue Brownies") ? "selected" : "" ?>>Kue Brownies</option>
-                </select>
+                    <option value="Nasi Box" <?= ($m["kategori"] == "Nasi Box") ? "selected" : "" ?>>Nasi Box</option>
+                    <option value="Kue Kering" <?= ($m["kategori"] == "Kue Kering") ? "selected" : "" ?>>Kue Kering</option>
+                    <option value="Cake" <?= ($m["kategori"] == "Cake") ? "selected" : "" ?>>Cake</option>
+                    <option value="Kue Brownies" <?= ($m["kategori"] == "Kue Brownies") ? "selected" : "" ?>>Kue Brownies</option>
+                </select><br><br>
 
                 <label>Varian Takaran</label>
                 <div id="varian-container">
