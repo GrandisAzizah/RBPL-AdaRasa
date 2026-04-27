@@ -493,6 +493,11 @@ function editPesanan($data)
     $metode = mysqli_real_escape_string($conn, $data['metode_pengantaran']);
     $status = mysqli_real_escape_string($conn, $data['status_pemesanan']);
 
+    // Ambil tanggal_pesan yang lama agar tidak berubah
+    $result = mysqli_query($conn, "SELECT tanggal_pesan FROM pesanan WHERE id_pesanan = $id_pesanan");
+    $row = mysqli_fetch_assoc($result);
+    $tanggal_pesan_lama = $row['tanggal_pesan'];
+
     $fk_menu = (int)$data['fk_menu'];
     $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
     $harga_total = $harga_satuan * $jumlah;
@@ -505,7 +510,8 @@ function editPesanan($data)
                 catatan_khusus_pemesanan = '$catatan',
                 tanggal_antar = '$tanggal_antar',
                 metode_pengantaran = '$metode',
-                status_pemesanan = '$status'
+                status_pemesanan = '$status',
+                 tanggal_pesan = '$tanggal_pesan_lama'
               WHERE id_pesanan = $id_pesanan";
 
     mysqli_query($conn, $query);
