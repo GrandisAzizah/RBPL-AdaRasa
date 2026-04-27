@@ -14,10 +14,39 @@ body {
     padding: 0 20px;
 }
 
+.bahan-item p {
+    font-size: 14px !important;
+    text-align: left;
+    margin: 0;
+}
+
+.bahan-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px !important;
+}
+.bahan-item input {
+    transform: scale(1.1);
+}
+
+.bahan-item + .bahan-item {
+    margin-top: 6px;
+}
+
 .container-bahan-baku {
     display: flex;
     justify-content: center;
-    padding: 0 10px !important;
+    padding: 0 20px;
+}
+
+.container-bahan-baku .card {
+    width: 100%;
+    max-width: 335px;
+}
+
+.card-bahan.checked {
+    opacity: 0.5;
 }
 
 .form-check-input {
@@ -30,6 +59,13 @@ h5 {
     margin-top: 30px;
     font-weight:550;
     color: #000000;
+}
+
+.header-text {
+    text-align: center;
+    font-size: 24px;
+    margin-top: 30px;
+    font-weight: 550;
 }
 
 img {
@@ -95,7 +131,6 @@ img {
 
 p {
     text-align: center;
-    font-size: 24px;
     margin-top: 30px;
     font-weight: 550;
     color: #000000;
