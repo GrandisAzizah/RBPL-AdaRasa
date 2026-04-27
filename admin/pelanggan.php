@@ -9,6 +9,9 @@ if (!isset($_SESSION["login"])) {
 require '../functions.php';
 
 $pelanggan = query("SELECT * FROM customer");
+$sort = isset($_GET['sort']) ? $_GET['sort'] : 'asc';
+$next_sort = ($sort == 'asc') ? 'desc' : 'asc';
+$pelanggan = query("SELECT * FROM customer ORDER BY nama_pelanggan $sort");
 ?>
 
 <!DOCTYPE html>
@@ -43,10 +46,12 @@ $pelanggan = query("SELECT * FROM customer");
         <!-- tombol navigasi pelanggan dan pesanan -->
         <div class="btn-nav card row g-0">
             <div class="sort col-auto">
-                <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3.33333 9.16667V3.1875L1.1875 5.33333L0 4.16667L4.16667 0L8.33333 4.16667L7.14583 5.33333L5 3.1875V9.16667H3.33333ZM9.16667 16.6667L5 12.5L6.1875 11.3333L8.33333 13.4792V7.5H10V13.4792L12.1458 11.3333L13.3333 12.5L9.16667 16.6667Z" fill="black" />
-                </svg>
-                <span>Urutkan</span>
+                <a href="?sort=<?= $next_sort ?>" style="color: #4A4459; text-decoration: none; font-weight: 600;"><?= ($sort == 'asc') ? '' : '' ?>
+                    <svg width="14" height="17" viewBox="0 0 14 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3.33333 9.16667V3.1875L1.1875 5.33333L0 4.16667L4.16667 0L8.33333 4.16667L7.14583 5.33333L5 3.1875V9.16667H3.33333ZM9.16667 16.6667L5 12.5L6.1875 11.3333L8.33333 13.4792V7.5H10V13.4792L12.1458 11.3333L13.3333 12.5L9.16667 16.6667Z" fill="black" />
+                    </svg>
+                    <span>Urutkan</span>
+                </a>
             </div>
             <div class="btn-group col-auto" role="group" aria-label="Basic radio toggle button group">
                 <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
