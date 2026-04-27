@@ -15,17 +15,26 @@ LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
 LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
 ORDER BY p.tanggal_pesan DESC");
 
-$bahan_perlu_beli = query("SELECT 
-    bb.nama_bahan,
-    bb.satuan,
-    SUM(dpb.jumlah_dipakai) as total_butuh,
-    COALESCE(sb.stok_tersedia, 0) as stok_ada,
-    (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia, 0)) as perlu_beli
-FROM detail_pesanan_bahan dpb
-JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
-LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
-GROUP BY bb.nama_bahan, bb.satuan, sb.stok_tersedia
-HAVING total_butuh > COALESCE(sb.stok_tersedia, 0)");
+$bahan_perlu_beli = query("SELECT * FROM (
+    SELECT 
+        bb.nama_bahan,
+        bb.satuan,
+        SUM(dpb.jumlah_dipakai) as total_butuh,
+        COALESCE(sb.stok_tersedia, 0) as stok_tersedia,
+        (SUM(dpb.jumlah_dipakai) - COALESCE(sb.stok_tersedia, 0)) as perlu_beli,
+        m.nama_menu,
+        c.nama_pelanggan
+    FROM detail_pesanan_bahan dpb
+    JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
+    JOIN pesanan p ON dpb.fk_detail_pesanan = p.id_pesanan
+    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+    JOIN menu m ON mv.fk_menu_varian = m.id_menu
+    JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+    LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
+    GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan, m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
+    ORDER BY bb.nama_bahan
+) as subquery
+WHERE total_butuh > stok_tersedia");
 
 // alert
 $tanggal_hari_ini = date('Y-m-d');
@@ -110,15 +119,17 @@ $tipe = 'info';
 
             <div class="menu-item">
                 <button type="button" class="menu-button" data-bs-toggle="modal" data-bs-target="">
-                    <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-                        <rect width="34.0596" height="34.0596" fill="url(#pattern0_151_6152)" />
-                        <defs>
-                            <pattern id="pattern0_151_6152" patternContentUnits="objectBoundingBox" width="1" height="1">
-                                <use xlink:href="#image0_151_6152" transform="scale(0.01)" />
-                            </pattern>
-                            <image id="image0_151_6152" width="100" height="100" preserveAspectRatio="none" xlink:href="data:image/png;base64,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" />
-                        </defs>
-                    </svg>
+                    <a href="laporan.php">
+                        <svg width="35" height="35" viewBox="0 0 35 35" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                            <rect width="34.0596" height="34.0596" fill="url(#pattern0_151_6152)" />
+                            <defs>
+                                <pattern id="pattern0_151_6152" patternContentUnits="objectBoundingBox" width="1" height="1">
+                                    <use xlink:href="#image0_151_6152" transform="scale(0.01)" />
+                                </pattern>
+                                <image id="image0_151_6152" width="100" height="100" preserveAspectRatio="none" xlink:href="data:image/png;base64,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" />
+                            </defs>
+                        </svg>
+                    </a>
                 </button>
                 <span class="menu-label">Laporan</span>
             </div>
@@ -189,7 +200,11 @@ $tipe = 'info';
                             <p class="mb-0">
                                 <?= $b['nama_bahan'] ?> - <?= $b['perlu_beli'] ?> <?= $b['satuan'] ?>
                             </p>
-                            <input type="checkbox" class="form-check-input">
+
+                            <input type="checkbox"
+                                class="form-check-input checkbox-bahan"
+                                data-id="<?= $b['nama_bahan'] ?>"
+                                data-jumlah="<?= $b['perlu_beli'] ?>">
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -197,6 +212,55 @@ $tipe = 'info';
         <?php endif; ?>
     </div>
 
+    <script>
+        function getCardElement(checkbox) {
+            return checkbox.closest('.card-bahan');
+        }
+
+        document.querySelectorAll('.checkbox-bahan').forEach(cb => {
+            cb.addEventListener('change', function() {
+                const nama = this.dataset.id;
+                const jumlah = this.dataset.jumlah;
+                const checked = this.checked ? 1 : 0;
+                this.disabled = true;
+
+                fetch('updateStok.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            nama,
+                            jumlah,
+                            checked
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            const card = getCardElement(this);
+                            if (card) {
+                                card.style.transition = 'opacity .3s, height .3s, margin .3s';
+                                card.style.opacity = '0';
+                                card.style.height = '0';
+                                card.style.margin = '0';
+                                setTimeout(() => card.remove(), 300);
+                            }
+                        } else {
+                            alert(data.message || 'Gagal memperbarui stok');
+                            this.checked = !this.checked;
+                            this.disabled = false;
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Terjadi error jaringan');
+                        this.checked = !this.checked;
+                        this.disabled = false;
+                    });
+            });
+        });
+    </script>
 </body>
 
 </html>
