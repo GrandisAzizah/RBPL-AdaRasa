@@ -25,6 +25,7 @@ $bahan_perlu_beli = query("SELECT * FROM (
     JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
     LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
     GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan, m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
+    ORDER BY bb.nama_bahan
 ) as subquery
 WHERE total_butuh > stok_tersedia");
 
@@ -119,12 +120,42 @@ WHERE total_butuh > stok_tersedia");
                             </div>
                         </div>
                         <div class="col-auto">
-                            <input type="checkbox" class="form-check-input" id="checkbox-<?= $b['nama_bahan'] ?>">
+                            <input
+                                type="checkbox"
+                                class="form-check-input checkbox-bahan"
+                                data-id="<?= $b['nama_bahan'] ?>"
+                                data-jumlah="<?= $b['perlu_beli'] ?>">
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
+
+        <script>
+            document.querySelectorAll('.checkbox-bahan').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    let nama = this.dataset.id;
+                    let jumlah = this.dataset.jumlah;
+                    let checked = this.checked ? 1 : 0;
+
+                    fetch('updateStok.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                nama: nama,
+                                jumlah: jumlah,
+                                checked: checked
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            console.log(data);
+                        });
+                });
+            });
+        </script>
 </body>
 
 </html>
