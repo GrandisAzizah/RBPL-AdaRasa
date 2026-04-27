@@ -9,21 +9,30 @@ if (!isset($_SESSION["login"])) {
 require '../functions.php';
 
 $id_pesanan = (int)$_GET['id_pesanan'];
-$pesanan = query("SELECT p.*, mv.fk_menu_varian as fk_menu 
-    FROM pesanan p 
-    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    WHERE p.id_pesanan = $id_pesanan")[0];
-
-$id_menu = $pesanan['fk_menu'];
-$fk_varian = $pesanan['fk_pesanan_varian'];
-$jumlah = $pesanan['jumlah'];
-$bahan = query("SELECT * FROM bahan_baku 
-    WHERE fk_menu_bahan = $id_menu 
-    AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
-
 $pelanggan = query("SELECT * FROM customer");
 $menu = query("SELECT * FROM menu");
 $varian = query("SELECT * FROM menu_varian");
+$pesanan = query("SELECT p.*, dp.packing, mv.fk_menu_varian as fk_menu 
+    FROM pesanan p 
+    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+    LEFT JOIN detail_pesanan_bahan dp ON p.id_pesanan = dp.fk_detail_pesanan
+    WHERE p.id_pesanan = $id_pesanan")[0];
+
+$daftar_pelanggan = query("SELECT * FROM customer ORDER BY nama_pelanggan");
+$daftar_menu = query("SELECT * FROM menu ORDER BY nama_menu");
+$daftar_varian = query("SELECT * FROM menu_varian ORDER BY takaran");
+$id_menu = $pesanan['fk_menu'];
+$fk_varian = $pesanan['fk_pesanan_varian'];
+$jumlah = $pesanan['jumlah'];
+if (!empty($fk_varian)) {
+    $bahan = query("SELECT * FROM bahan_baku 
+        WHERE fk_menu_bahan = $id_menu 
+        AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
+} else {
+    $bahan = query("SELECT * FROM bahan_baku 
+        WHERE fk_menu_bahan = $id_menu 
+        AND fk_varian_bahan IS NULL");
+}
 
 $pesan = '';
 $tipe = '';
@@ -48,7 +57,7 @@ if (isset($_POST["submit"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesanan & Pelanggan</title>
+    <title>Edit Pesanan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
@@ -150,71 +159,64 @@ if (isset($_POST["submit"])) {
 <body>
     <div class="container-main">
         <div class="header-nav-input mt-3">
-            <a href="pesanan.php" class="header-nav-left">
+            <a href="showDetailPesananAdmin.php?id_pesanan=<?= $pesanan['id_pesanan'] ?>" class="header-nav-left">
                 <svg width="30" height="30" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </a>
-            <h5 class="header-nav-title-input" style="margin: 0;">INPUT PEMESANAN</h5>
+            <h5 class="header-nav-title-input" style="margin: 0;">EDIT PEMESANAN</h5>
         </div>
 
         <div class="container">
             <form id="form-pesanan" method="POST">
                 <!-- INPUT NAMA MENU -->
                 <label for="nama_pelanggan">Nama Pelanggan</label>
-                <select name="nama_pelanggan" required>
-                    <?php foreach ($pelanggan as $p): ?>
-                        <option value="<?= $p['id_pelanggan'] ?>" <?= $p['id_pelanggan'] == $pesanan['fk_pesanan_customer'] ? 'selected' : '' ?>>
-                            <?= $p['nama_pelanggan'] ?>
+                <select name="nama_pelanggan" id="nama_pelanggan" required>
+                    <?php foreach ($daftar_pelanggan as $pelanggan): ?>
+                        <option value="<?= $pelanggan['id_pelanggan'] ?>" <?= $pesanan['fk_pesanan_customer'] == $pelanggan['id_pelanggan'] ? 'selected' : '' ?>>
+                            <?= $pelanggan['nama_pelanggan'] ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
-
 
                 <!-- INPUT PESANAN -->
+                <!-- INPUT PESANAN - ganti ini -->
                 <label for="nama_pesanan">Pesanan</label>
-                <select name="nama_pesanan" id="nama_pesanan" class="select2" style="width: 100%;" required>
-                    <?php
-                    $menu = query("SELECT * FROM menu ORDER BY nama_menu ASC");
-                    foreach ($menu as $row):
-                    ?>
-                        <option value="<?= $row['id_menu']; ?>">
-                            <?= $row['nama_menu']; ?>
+                <select name="fk_menu_pilih" id="nama_pesanan" required>
+                    <?php foreach ($daftar_menu as $m): ?>
+                        <option value="<?= $m['id_menu'] ?>" <?= $m['id_menu'] == $id_menu ? 'selected' : '' ?>>
+                            <?= $m['nama_menu'] ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <input type="hidden" name="fk_menu" value="<?= $id_menu ?>">
 
                 <!-- INPUT JUMLAH -->
                 <label for="jumlah">Jumlah:<br></label>
                 <input type="text" name="jumlah" value="<?= $jumlah ?>" id="jumlah" min="0" max="100" step="1" required
                     oninput="this.value = Math.floor(this.value); if(this.value < 0) this.value = 0; if(this.value > 500) this.value = 500;">
 
-                <div class="packing-takaran-item">
-                    <label for="takaran">Takaran</label>
-                    <select name="takaran" id="takaran">
-                        <?php
-                        $varian = query("SELECT * FROM menu_varian ORDER BY id_varian ASC");
-                        foreach ($varian as $row):
-                        ?>
-                            <option value="<?= $row['id_varian']; ?>">
-                                <?= $row['takaran']; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <label for="takaran">Takaran</label>
+                <select name="fk_pesanan_varian" id="takaran" required>
+                    <?php foreach ($daftar_varian as $v): ?>
+                        <option value="<?= $v['id_varian'] ?>" <?= $v['id_varian'] == $fk_varian ? 'selected' : '' ?>>
+                            <?= $v['takaran'] ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
 
                 <div class="packing-takaran-group">
                     <div class="packing-takaran-item">
-                        <label for="packing">Packing</label>
+                        <label for="packing">Packing:</label>
                         <select name="packing" id="packing">
-                            <option value="Box">Box</option>
-                            <option value="Mika">Mika</option>
-                            <option value="Kertas Minyak">Kertas Minyak</option>
-                            <option value="Plastik">Plastik</option>
-                            <option value="Toples Kotak">Toples Kotak</option>
-                            <option value="Toples Lingkaran">Toples Lingkaran</option>
-                            <option value="Toples Hati">Toples Hati</option>
-                            <option value="Toples Tabung">Toples Tabung</option>
+                            <option value="Box" <?= $pesanan['packing'] == 'Box' ? 'selected' : '' ?>>Box</option>
+                            <option value="Mika" <?= $pesanan['packing'] == 'Mika' ? 'selected' : '' ?>>Mika</option>
+                            <option value="Kertas Minyak" <?= $pesanan['packing'] == 'Kertas Minyak' ? 'selected' : '' ?>>Kertas Minyak</option>
+                            <option value="Plastik" <?= $pesanan['packing'] == 'Plastik' ? 'selected' : '' ?>>Plastik</option>
+                            <option value="Toples Kotak" <?= $pesanan['packing'] == 'Toples Kotak' ? 'selected' : '' ?>>Toples Kotak</option>
+                            <option value="Toples Lingkaran" <?= $pesanan['packing'] == 'Toples Lingkaran' ? 'selected' : '' ?>>Toples Lingkaran</option>
+                            <option value="Toples Hati" <?= $pesanan['packing'] == 'Toples Hati' ? 'selected' : '' ?>>Toples Hati</option>
+                            <option value="Toples Tabung" <?= $pesanan['packing'] == 'Toples Tabung' ? 'selected' : '' ?>>Toples Tabung</option>
                         </select>
                     </div>
                 </div>
@@ -233,21 +235,16 @@ if (isset($_POST["submit"])) {
                     </div>
                 <?php endforeach; ?>
 
-                <label>Tanggal Pemesanan</label>
-                <div class="card card-tanggal-pesan">
-                    <p id="jam-sekarang" style="padding: 5px; font-size: 13px; color: #000000;"></p>
-                </div>
-
                 <label for="metode_pengantaran">Metode Pengantaran</label>
                 <select name="metode_pengantaran" id="metode_pengantaran">
-                    <option value="Kurir Catering">Kurir Catering</option>
-                    <option value="Ojek Online">Ojek Online</option>
+                    <option value="Kurir Catering" <?= $pesanan['metode_pengantaran'] == 'Kurir Catering' ? 'selected' : '' ?>>Kurir Catering</option>
+                    <option value="Ojek Online" <?= $pesanan['metode_pengantaran'] == 'Ojek Online' ? 'selected' : '' ?>>Ojek Online</option>
                 </select><br>
-
                 <label>Tanggal Pengiriman</label>
-                <input type="datetime-local" name="tanggal_antar" id="tanggal_antar" step="60">
-                <label for="catatan_khusus_pemesanan" class="form-label">Catatan Khusus Pemesanan</label>
-                <textarea type="text" name="catatan_khusus_pemesanan" id="catatan_khusus_pemesanan" maxlength="255"></textarea>
+                <input type="datetime-local" name="tanggal_antar" value="<?= date('Y-m-d\TH:i', strtotime($pesanan['tanggal_antar'])) ?>">
+
+                <label for="catatan_khusus_pemesanan">Catatan</label>
+                <textarea name="catatan_khusus_pemesanan" maxlength="255"><?= $pesanan['catatan_khusus_pemesanan'] ?></textarea>
         </div>
         <!-- SUBMIT BUTTON -->
         <button type="button" onclick="validasiDanNext()" class="btn btn-outline-dark input-next">Next</button>
