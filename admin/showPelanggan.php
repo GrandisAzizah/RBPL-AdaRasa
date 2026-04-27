@@ -11,7 +11,6 @@ require '../functions.php';
 $id_pelanggan = $_GET['id_pelanggan'];
 $pelanggan = query("SELECT * FROM customer WHERE id_pelanggan = $id_pelanggan");
 $nama_pelanggan = $pelanggan[0]['nama_pelanggan'];
-
 ?>
 
 <!DOCTYPE html>
