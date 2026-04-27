@@ -10,9 +10,9 @@ require '../functions.php';
 
 $jumlah = $_SESSION['pesanan']['jumlah'] ?? 1;
 $id_menu = $_SESSION['pesanan']['fk_menu'] ?? 0;
-$fk_varian = $_SESSION['pesanan']['fk_pesanan_varian'] ?? 0;
+$fk_varian = $_SESSION['pesanan']['fk_pesanan_varian'] ?? null;
 
-if (!empty($fk_varian)) {
+if (!is_null($fk_varian) && $fk_varian > 0) {
     $bahan = query("SELECT * FROM bahan_baku 
         WHERE fk_menu_bahan = $id_menu 
         AND (fk_varian_bahan = $fk_varian OR fk_varian_bahan IS NULL)");
@@ -74,7 +74,7 @@ if (isset($_POST["submit"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pesanan & Pelanggan</title>
+    <title>Input Bahan Pesanan</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
