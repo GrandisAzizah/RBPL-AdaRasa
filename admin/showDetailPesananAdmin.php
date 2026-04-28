@@ -81,7 +81,7 @@ $row = $pesanan[0]; // Ambil data pertama
                             <p class="card-text mt-4 mb-3"><strong>Menu dipesan:</strong> <br><?= $row['nama_menu'] ?></p>
                             <p class="card-text mb-3"><strong>Jumlah pesan:</strong> <br><?= $row['jumlah'] ?> porsi</p>
                             <p class="card-text mb-3"><strong>Harga Total:</strong> <br>Rp <?= number_format($row['harga_total'], 0, ',', '.') ?></p>
-                            <p class="card-text mb-3"><strong>Catatan</strong><br> <?= $row['catatan_khusus_pemesanan'] ?></p>
+                            <p class="card-text mb-3"><strong>Catatan:</strong><br> <?= $row['catatan_khusus_pemesanan'] ?></p>
                             <p class="card-text mb-3"><strong>Takaran:</strong><br> <?= $row['takaran'] ?></p>
                             <p class="card-text mb-3"><strong>Packing: </strong><br> <?= $row['packing'] ?></strong></p>
                             <p class="card-text mb-3"><strong>Nama Pelanggan:</strong><br> <?= $row['nama_pelanggan'] ?></p>
