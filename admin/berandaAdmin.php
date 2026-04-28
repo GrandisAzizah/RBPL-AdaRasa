@@ -8,12 +8,17 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
+$total_pesanan_db = query("SELECT COUNT(*) as total FROM pesanan")[0]['total'];
+$show_all = isset($_GET['show_all']) ? $_GET['show_all'] : 'false';
+$limit = ($show_all == 'true') ? 999999 : 5;
+
 $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
 m.nama_menu, m.gambar_menu FROM pesanan p 
 LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
 LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
 LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-ORDER BY p.tanggal_pesan DESC");
+ORDER BY p.tanggal_pesan DESC
+LIMIT $limit");
 
 $bahan_perlu_beli = query("SELECT * FROM (
     SELECT 
@@ -40,9 +45,7 @@ WHERE total_butuh > stok_tersedia");
 $tanggal_hari_ini = date('Y-m-d');
 
 $query = "SELECT COUNT(*) as total FROM pesanan WHERE DATE(tanggal_pesan) = '$tanggal_hari_ini'";
-$result = mysqli_query($conn, $query);
-$row = mysqli_fetch_assoc($result);
-$total_pesanan = $row['total'];
+$total_pesanan = query($query)[0]['total'];
 
 $pesan = "Terdapat $total_pesanan pesanan hari ini.";
 $tipe = 'info';
@@ -154,7 +157,7 @@ $tipe = 'info';
             <p class="text-muted" style="font-size: 16px;">Belum ada pesanan</p>
         <?php else: ?>
             <?php foreach ($pesanan_terbaru as $p): ?>
-                <a href="showDetailPesananAdmin.php?id_pesanan=<?= $p['id_pesanan'] ?>" style="text-decoration: none; color: inherit;">
+            <a href="showDetailPesananAdmin.php?id_pesanan=<?= $p['id_pesanan'] ?>" style="text-decoration: none; color: inherit;">
                     <div class="container-order">
                         <div class="order-data card mb-3">
                             <div class="row g-0">
@@ -177,17 +180,17 @@ $tipe = 'info';
                     </div>
                 </a>
             <?php endforeach; ?>
-            <button type="button" class="load-more-button" data-bs-toggle="modal" data-bs-target="">
-                <span> More</span>
-                <svg width="10" height="10" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M0 0L5 5L10 0H0Z" fill="black" />
-                </svg>
-            </button>
+
+            <?php if ($total_pesanan_db > 5): ?>
+                <!-- tombol more/show less -->
+            <?php endif; ?>
         <?php endif; ?>
 
+        <!-- PINDAHKAN KE SINI - DI LUAR ELSE PESANAN -->
         <a href="listBelanjaBahan.php">
             <h5>Bahan Baku</h5>
         </a>
+
         <?php if (empty($bahan_perlu_beli)): ?>
             <p class="text-muted" style="font-size: 14px;">
                 Belum ada bahan baku yang perlu dibeli
@@ -200,7 +203,6 @@ $tipe = 'info';
                             <p class="mb-0">
                                 <?= $b['nama_bahan'] ?> - <?= $b['perlu_beli'] ?> <?= $b['satuan'] ?>
                             </p>
-
                             <input type="checkbox"
                                 class="form-check-input checkbox-bahan"
                                 data-id="<?= $b['nama_bahan'] ?>"
