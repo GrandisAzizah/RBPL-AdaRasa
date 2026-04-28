@@ -1,3 +1,44 @@
+<?php
+session_start();
+if (!isset($_SESSION["login"])) {
+    header("location: login.php");
+    exit;
+}
+
+require '../functions.php';
+
+// Daftar SEMUA kategori yang ingin ditampilkan (hardcode)
+$semua_kategori = [
+    'Nasi Box' => 'nasibox-laporan.png',
+    'Kue Kering' => 'kuekering-laporan.png',
+    'Cake' => 'cake-laporan.png',
+    'Kue Brownies' => 'kuebrownies-laporan.png'
+];
+
+// Ambil data penjualan per kategori dari database
+$penjualan_kategori = query("
+    SELECT 
+        m.kategori,
+        SUM(p.jumlah) as total_terjual
+    FROM pesanan p
+    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+    JOIN menu m ON mv.fk_menu_varian = m.id_menu
+    GROUP BY m.kategori
+");
+
+// Buat array hasil dengan semua kategori (default 0)
+$kategori_total = [];
+foreach (array_keys($semua_kategori) as $kat) {
+    $kategori_total[$kat] = 0;
+}
+foreach ($penjualan_kategori as $row) {
+    $kategori_total[$row['kategori']] = $row['total_terjual'];
+}
+
+$labels = array_keys($kategori_total);
+$data_penjualan = array_values($kategori_total);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -9,6 +50,7 @@
     <title>Laporan</title>
     <link rel="stylesheet" href="../pesanan.css">
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 
 <style>
@@ -56,6 +98,55 @@
         text-decoration: none;
         color: black;
     }
+
+    img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .card .nama-kategori {
+        margin-top: 10px;
+    }
+
+    .report-card .card {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 10px;
+        gap: 15px;
+        height: 150px;
+        outline: 1px solid #000000 !important;
+    }
+
+    .report-card .card img {
+        width: 80px;
+        height: 70px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .report-card .card-info {
+        text-align: left;
+        flex: 1;
+    }
+
+    .report-card .card-info .nama-kategori {
+        font-weight: 600;
+        font-size: 16px;
+        margin-bottom: 5px;
+    }
+
+    .report-card .card-info .jumlah {
+        font-size: 20px;
+        font-weight: bold;
+        color: #000000;
+    }
+
+    button.btn-outline-dark {
+        justify-content: center !important;
+        display: flex !important;
+        border-radius: 20px !important;
+    }
 </style>
 
 <body>
@@ -69,49 +160,73 @@
             <h5 style="margin: 0;">Detail Laporan</h5>
         </div>
 
-        <div class="report-card">
-            <div class="row">
-                <div class="col-sm-6 mb-3 mb-sm-3">
-                    <div class="card">
-                        <div class="card-body">
-                            <img src="laporan-img/nasibox-laporan.png" alt="Nasi Box" style="width: 100px; height: 100px;">
-                            <p class="card-title">Nasi Box</p>
-                            <p class="card-text">Jumlah Beli</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <img src="laporan-img/kuekering-laporan.png" alt="Kue Kering" style="width: 100px; height: 100px;">
-                            <p class="card-title">Kue Kering</p>
-                            <p class="card-text">Jumlah Beli</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <img src="laporan-img/cake-laporan.png" alt="Cake" style="width: 100px; height: 100px;">
-                            <p class="card-title">Cake</p>
-                            <p class="card-text">Jumlah Beli</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <img src="laporan-img/kuebrownies-laporan.png" alt="Kue Brownies" style="width: 100px; height: 100px;">
-                            <p class="card-title">Kue Brownies</p>
-                            <p class="card-text">Jumlah Beli</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="chart-container mb-4">
+            <canvas id="kategoriChart" width="400" height="400"></canvas>
         </div>
 
-        <button class="btn btn-outline-dark mb-3 mt-3 justify-content-center item-align-center">Detail Analisis</button>
+        <div class="report-card mt-3">
+            <div class="row">
+                <?php foreach ($kategori_total as $kategori => $total): ?>
+                    <div class="col-sm-6 mb-3">
+                        <div class="card">
+                            <img src="laporan-img/<?= $semua_kategori[$kategori] ?>" alt="<?= $kategori ?>">
+                            <div class="card-info">
+                                <div class="nama-kategori"><?= $kategori ?></div>
+                                <div class="jumlah"><?= $total ?></div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
     </div>
+
+    <div class="d-flex justify-content-center gap-3 mt-3 mb-3">
+        <button onclick="window.print()" class="btn btn-sm" style="background-color: #6750A4; color: white; border-radius: 20px; padding: 6px 20px;">
+            Cetak/Simpan PDF
+        </button>
+        <a href="analisisLaporan.php">
+            <button class="btn btn-outline-dark btn-sm" style="border-radius: 20px; padding: 6px 20px;">Detail Analisis</button>
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('kategoriChart').getContext('2d');
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: <?= json_encode($labels) ?>,
+                    datasets: [{
+                        label: 'Jumlah Terjual',
+                        data: <?= json_encode($data_penjualan) ?>,
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: ''
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
