@@ -27,6 +27,9 @@ $tipe = '';
 
 if (isset($_POST["submit"])) {
     $packing = $_POST['packing'];
+    if (empty($packing) || $packing == '0') {
+        $packing = 'Box';
+    }
     $bahan_dipilih = $_POST['bahan'] ?? [];
     // Simpan detail bahan dan packing
     $bahan_tambahan_dipilih = $_POST['bahan_tambahan'] ?? [];
@@ -228,7 +231,7 @@ if (isset($_POST["submit"])) {
                 <div class="packing-takaran-group">
                     <div class="packing-takaran-item">
                         <label for="packing">Packing</label>
-                        <select name="packing" id="packing">
+                        <select name="packing" id="packing" required>
                             <option value="Box">Box</option>
                             <option value="Mika">Mika</option>
                             <option value="Kertas Minyak">Kertas Minyak</option>
