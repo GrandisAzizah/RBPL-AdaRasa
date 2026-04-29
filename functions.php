@@ -430,6 +430,9 @@ function simpanDetailPesanan(
     $bahan_tambahan_sess = []
 ) {
     global $conn;
+    if (empty($packing) || $packing == '0') {
+        $packing = 'Box';
+    }
     $inserted = 0;
     foreach ($bahan_dipilih as $id_bahan) {
         $sql = "SELECT id_bahan, nama_bahan, jumlah_default, satuan
@@ -460,7 +463,7 @@ function simpanDetailPesanan(
         );
         mysqli_stmt_bind_param(
             $stmt,
-            "iiids",
+            "iiisd",
             $id_pesanan,
             $b['id_bahan'],
             $stok['id_stok'],
@@ -504,7 +507,7 @@ function simpanDetailPesanan(
         );
         mysqli_stmt_bind_param(
             $stmt,
-            "iiids",
+            "iiisd",
             $id_pesanan,
             $bt['id_bahan'],
             $stok['id_stok'],
