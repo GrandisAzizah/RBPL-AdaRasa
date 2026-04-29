@@ -8,15 +8,24 @@ if (!isset($_SESSION["login"])) {
 
 require '../functions.php';
 
+if (!isset($_GET['id_pesanan'])) {
+    die("ID tidak ditemukan di URL!");
+}
 $id_pesanan = (int)$_GET['id_pesanan'];
 $pelanggan = query("SELECT * FROM customer");
 $menu = query("SELECT * FROM menu");
 $varian = query("SELECT * FROM menu_varian");
-$pesanan = query("SELECT p.*, dp.packing, mv.fk_menu_varian as fk_menu 
+$result = query("SELECT p.*, dp.packing, mv.fk_menu_varian as fk_menu 
     FROM pesanan p 
     JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
     LEFT JOIN detail_pesanan_bahan dp ON p.id_pesanan = dp.fk_detail_pesanan
-    WHERE p.id_pesanan = $id_pesanan")[0];
+    WHERE p.id_pesanan = $id_pesanan");
+
+if (!$result) {
+    die("Data pesanan tidak ditemukan!");
+}
+
+$pesanan = $result[0];
 
 $daftar_pelanggan = query("SELECT * FROM customer ORDER BY nama_pelanggan");
 $daftar_menu = query("SELECT * FROM menu ORDER BY nama_menu");
@@ -169,6 +178,7 @@ if (isset($_POST["submit"])) {
 
         <div class="container">
             <form id="form-pesanan" method="POST">
+                <input type="hidden" name="id_pesanan" value="<?= $pesanan['id_pesanan'] ?>">
                 <!-- INPUT NAMA MENU -->
                 <label for="nama_pelanggan">Nama Pelanggan</label>
                 <select name="nama_pelanggan" id="nama_pelanggan" required>
@@ -228,7 +238,10 @@ if (isset($_POST["submit"])) {
                     <div class="bahan-item">
                         <label for="bahan<?= $i ?>" class="bahan-label">
                             <span class="bahan-nama"><?= $b['nama_bahan'] ?></span>
-                            <span class="bahan-jumlah" id="jumlah-bahan-<?= $i ?>">
+                            <span
+                                class="bahan-jumlah"
+                                data-default="<?= $b['jumlah_default'] ?>"
+                                id="jumlah-bahan-<?= $i ?>">
                                 <?= $jumlah_bahan ?> <?= $b['satuan'] ?>
                             </span>
                         </label>
@@ -245,18 +258,20 @@ if (isset($_POST["submit"])) {
 
                 <label for="catatan_khusus_pemesanan">Catatan</label>
                 <textarea name="catatan_khusus_pemesanan" maxlength="255"><?= $pesanan['catatan_khusus_pemesanan'] ?></textarea>
+                <!-- SUBMIT BUTTON -->
+                <button type="submit" value="submit" name="submit" class="btn btn-outline-dark input-next">Save</button>
+            </form>
         </div>
-        <!-- SUBMIT BUTTON -->
-        <button type="button" onclick="validasiDanNext()" class="btn btn-outline-dark input-next">Next</button>
-        </form>
     </div>
 </body>
 
 </html>
 
 <script>
+    let tomSelect; // taruh di luar
+
     document.addEventListener('DOMContentLoaded', function() {
-        const tomSelect = new TomSelect('#nama_pesanan', {
+        tomSelect = new TomSelect('#nama_pesanan', {
             create: false,
             sortField: 'text',
             searchField: 'text',
@@ -264,6 +279,7 @@ if (isset($_POST["submit"])) {
             allowEmptyOption: true,
             onChange: function(value) {
                 updateTakaran(value);
+                updateBahan();
             },
             render: {
                 option: function(data, escape) {
@@ -277,11 +293,12 @@ if (isset($_POST["submit"])) {
             }
         });
 
-        setTimeout(function() {
-            tomSelect.clear();
-            tomSelect.setValue('');
-        }, 10);
+        // pindahin ke sini
+        const selectedMenu = <?= json_encode($id_menu) ?>;
+        tomSelect.setValue(selectedMenu);
     });
+
+    const selectedVarian = <?= json_encode($fk_varian) ?>;
 
     function updateJam() {
         const now = new Date();
@@ -296,10 +313,11 @@ if (isset($_POST["submit"])) {
     updateJam();
     setInterval(updateJam, 1000);
 
-    document.getElementById('jumlah').addEventListener('keyup', function(e) {
+    document.getElementById('jumlah').addEventListener('input', function() {
         if (this.value.includes('.')) {
             this.value = Math.floor(this.value);
         }
+        updateBahan();
     });
 
     function validasiDanNext() {
@@ -320,7 +338,7 @@ if (isset($_POST["submit"])) {
 
     function updateTakaran(id_menu) {
         const select = document.getElementById('takaran');
-        select.innerHTML = ''; // kosongkan dulu
+        select.innerHTML = '';
 
         const filtered = semuaVarian.filter(v => v.fk_menu_varian == id_menu);
 
@@ -333,7 +351,25 @@ if (isset($_POST["submit"])) {
             const opt = document.createElement('option');
             opt.value = v.id_varian;
             opt.textContent = v.takaran;
+
+            if (v.id_varian == selectedVarian) {
+                opt.selected = true;
+            }
+
             select.appendChild(opt);
+        });
+    }
+
+    function updateBahan() {
+        const jumlah = parseInt(document.getElementById('jumlah').value) || 0;
+
+        document.querySelectorAll('.bahan-jumlah').forEach(el => {
+            const defaultVal = parseFloat(el.dataset.default);
+            const satuan = el.textContent.split(' ').pop();
+
+            const total = defaultVal * jumlah;
+
+            el.textContent = total + ' ' + satuan;
         });
     }
 
