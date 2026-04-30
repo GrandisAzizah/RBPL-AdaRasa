@@ -57,3 +57,60 @@ body {
     width: 40px;
     height: 40px;
 }
+
+ h3 {
+        font-size: 24px;
+        font-weight: 600;
+        line-height: normal;
+        justify-content: center !important;
+    }
+
+    .header-text {
+        text-align: center;
+    }
+
+    .waktu-pesan {
+        font-size: 14px;
+        text-align: right;
+        margin-right: 10px;
+    }
+
+    .nav-underline .nav-link {
+        color: #888888 !important;
+        border-bottom: 2px solid transparent !important;
+    }
+
+    .container-main {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px 20px 100px 20px;
+        font-family: 'Aleo', serif;
+    }
+
+    .card {
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .card-notif {
+        min-height: 10px;
+        max-height: 100px;
+        border-radius: 5px;
+        outline: black solid 1.2px;
+        max-width: 540px;
+    }
+    
+    .card-body-notif {
+        min-height: 10px;
+        padding: 10px 8px 10px 20px;
+    }
+
+    .card-title-notif {
+        font-size: 18px;
+        font-weight: 650;
+        margin-bottom: 2px;
+    }
+
+    .nama-menu {
+        font-size: 16px;
+        margin-bottom: 0;
+    }
