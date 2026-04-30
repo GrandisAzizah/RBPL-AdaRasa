@@ -22,6 +22,7 @@ $pesanan = query("SELECT
 
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'asc';
 $next_sort = ($sort == 'asc') ? 'desc' : 'asc';
+$sort_safe = ($sort === 'desc') ? 'DESC' : 'ASC';
 
 $pesanan = query("SELECT 
         p.*,
@@ -33,7 +34,7 @@ $pesanan = query("SELECT
     LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
     LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
     LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    ORDER BY p.tanggal_antar $sort");
+    ORDER BY p.tanggal_pesan $sort_safe");
 ?>
 
 <!DOCTYPE html>
@@ -100,6 +101,7 @@ $pesanan = query("SELECT
                                 <div class="card-body">
                                     <h5 class="card-title"><?= $row['nama_menu'] ?></h5>
                                     <p class="card-text"><?= $row['takaran'] ?></p>
+                                    <p class="card-text"><?= date('d M Y, H:i', strtotime($row['tanggal_pesan'])) ?></p>
                                 </div>
                             </div>
 
