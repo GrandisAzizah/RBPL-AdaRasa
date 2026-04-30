@@ -379,7 +379,7 @@ function tambahPesanan($data)
     $harga_total = $harga_satuan * $jumlah;
 
     // Tentukan status
-    $status = ($metode == 'Kurir Catering') ? 'Diterima' : 'Selesai';
+    $status = 'Diterima';
 
     // Query yang benar
     $query = "INSERT INTO pesanan (
@@ -646,7 +646,8 @@ function editPesanan($data)
         : null;
     $jumlah = (int)$data['jumlah'];
     $catatan = mysqli_real_escape_string($conn, $data['catatan_khusus_pemesanan']);
-    $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
+    // $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
+    $tanggal_antar = date('Y-m-d H:i:s', strtotime($data['tanggal_antar']));
     $metode = $data['metode_pengantaran'] ?? '';
     $packing = mysqli_real_escape_string($conn, $data['packing'] ?? '');
 
