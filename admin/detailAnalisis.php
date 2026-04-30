@@ -170,7 +170,7 @@ if ($format == 'pdf') {
 <body>
     <div class="container">
         <div style="display: flex; align-items: center; justify-content: center; position: relative;" class="mb-3 mt-3">
-            <a href="laporan.php" style="position: absolute; left: 0; flex-shrink: 0;">
+            <a href="analisisLaporan.php" style="position: absolute; left: 0; flex-shrink: 0;">
                 <svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
