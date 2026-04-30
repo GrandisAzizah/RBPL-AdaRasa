@@ -1,6 +1,47 @@
 <?php
+
+session_start();
+if (!isset($_SESSION["login"])) {
+    header("location: login.php");
+    exit;
+}
 require '../functions.php';
-$menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
+
+$pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
+m.nama_menu, m.gambar_menu FROM pesanan p 
+LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
+WHERE p.status_pemesanan = 'Diterima'
+ORDER BY p.tanggal_pesan ASC");
+
+$id_pesanan = isset($_GET['id_pesanan']) ? (int)$_GET['id_pesanan'] : 0;
+$status_baru = isset($_GET['status']) ? $_GET['status'] : '';
+
+$status_valid = ['Diterima', 'Diproses', 'Selesai', 'Diantar'];
+if ($id_pesanan > 0 && in_array($status_baru, $status_valid)) {
+    $sql = "UPDATE pesanan SET status_pemesanan = '$status_baru' WHERE id_pesanan = $id_pesanan";
+    query($sql);
+
+    // Redirect ke halaman sesuai status baru
+    $halaman = [
+        'Diterima' => 'pesananDapurDiterima.php',
+        'Diproses' => 'pesananDapurDiproses.php',
+        'Selesai'  => 'pesananDapurSelesai.php',
+        'Diantar'  => 'pesananDapurDiantar.php',
+    ];
+    header("location: " . $halaman[$status_baru]);
+    exit;
+}
+// Kelompokkan pesanan berdasarkan tanggal
+$pesanan_per_tanggal = [];
+foreach ($pesanan_terbaru as $p) {
+    $tanggal = date('d F Y', strtotime($p['tanggal_pesan']));
+    if (!isset($pesanan_per_tanggal[$tanggal])) {
+        $pesanan_per_tanggal[$tanggal] = [];
+    }
+    $pesanan_per_tanggal[$tanggal][] = $p;
+}
 ?>
 
 <!DOCTYPE html>
@@ -17,9 +58,22 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
 </head>
 
 <style>
+    body {
+        font-family: 'Aleo', serif;
+    }
+
+    .card {
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
     .nav-underline .nav-link {
         color: #000 !important;
         font-size: 18px;
+    }
+
+    .nav-underline .nav-link.active {
+        color: #000 !important;
+        border-bottom: 2px solid #000 !important;
     }
 
     .nav-scroll {
@@ -87,6 +141,11 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
         display: none;
     }
 
+    .nav-underline .nav-link.active {
+        color: #000 !important;
+        border-bottom-color: #000 !important;
+    }
+
     .nav-container {
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -143,8 +202,20 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
     }
 
     h4 {
-        font-size: 20px;
+        font-size: 16px;
+        font-weight: bolder;
+        line-height: normal;
+    }
+
+    p {
+        font-size: 14px;
         font-weight: 400;
+        line-height: normal;
+    }
+
+    .card-title {
+        font-size: 16px;
+        font-weight: 600;
         line-height: normal;
     }
 </style>
@@ -154,10 +225,10 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
     <div class="container-main">
         <h3 class="mt-4 mb-4">Pesanan</h3>
 
-        <nav class="mb-4 navbar">
+        <!-- <nav class="mb-4 navbar">
             <ul class="nav nav-underline nav-fill w-100">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">Diterima</a>
+                    <a class="nav-link" aria-current="page" href="pesananDapurDiterima.php">Diterima</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="pesananDapurDiproses.php">Diproses</a>
@@ -169,41 +240,67 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
                     <a class="nav-link" href="pesananDapurDiantar.php">Diantar</a>
                 </li>
             </ul>
+        </nav> -->
+
+        <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
+
+        <nav class="mb-4 navbar">
+            <ul class="nav nav-underline nav-fill w-100">
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurDiterima.php' ? 'active' : '' ?>" href="pesananDapurDiterima.php">Diterima</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurDiproses.php' ? 'active' : '' ?>" href="pesananDapurDiproses.php">Diproses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurSelesai.php' ? 'active' : '' ?>" href="pesananDapurSelesai.php">Selesai</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurDiantar.php' ? 'active' : '' ?>" href="pesananDapurDiantar.php">Diantar</a>
+                </li>
+            </ul>
         </nav>
 
-        <h4>Tanggal</h4>
+        <?php if (empty($pesanan_terbaru)): ?>
+            <p class="text-muted" style="font-size: 16px; text-align: center; margin-top: 160px;">Belum ada pesanan</p>
+        <?php else: ?>
+            <?php foreach ($pesanan_per_tanggal as $tanggal => $pesanan_list): ?>
+                <h4>Tanggal <?= $tanggal ?></h4>
+                <?php foreach ($pesanan_list as $p): ?>
+                    <div class="card mb-3" style="max-width: 540px; outline: 1px solid black; position: relative;">
+                        <div class="row g-0">
+                            <!-- Gambar -->
+                            <div class="col-auto">
+                                <img src="<?= $p['gambar_menu'] ?>" class="card-img-top" alt="..." style="width: 100px; height: 100px; padding: 10px;">
+                            </div>
 
-        <div class="card mb-3" style="max-width: 540px; outline: 1px solid black; position: relative;">
-            <div class="row g-0">
-                <!-- Gambar -->
-                <div class="col-auto">
-                    <img src="../rbpl-nasi-kuning.png" class="card-img-top" alt="..." style="width: 100px; height: 100px; padding: 10px;">
-                </div>
+                            <!-- Nama Pemesan dan detail lainnya -->
+                            <div class="col mb-5">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= $p['nama_menu'] ?></h5>
+                                    <p class="mb-1">Porsi: <?= $p['jumlah'] ?></p>
+                                    <p class="mb-1"><?= date('H:i', strtotime($p['tanggal_pesan'])) ?></p>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Nama Pemesan dan detail lainnya -->
-                <div class="col mb-5">
-                    <div class="card-body">
-                        <h5 class="card-title">Nama Pemesan</h5>
-                        <p class="mb-1">Porsi</p>
-                        <p class="mb-1">Waktu pesan</p>
-                        <p class="mb-1"></p>
+                        <!-- Dropdown untuk mengubah status pesanan -->
+                        <div class="dropdown mb-1" style="position: absolute; bottom: 8px; right: 18px;">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Ubah Status
+                            </button>
+                            <!-- ubah status pesanan -->
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="pesananDapurDiterima.php?id_pesanan=<?= $p['id_pesanan'] ?>&status=Diterima">Diterima</a></li>
+                                <li><a class="dropdown-item" href="pesananDapurDiproses.php?id_pesanan=<?= $p['id_pesanan'] ?>&status=Diproses">Diproses</a></li>
+                                <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Selesai</a></li>
+                                <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Diantar</a></li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Dropdown untuk mengubah status pesanan -->
-            <div class="dropdown mb-1" style="position: absolute; bottom: 8px; right: 18px;">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Ubah Status
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Diterima</a></li>
-                    <li><a class="dropdown-item" href="#">Diproses</a></li>
-                    <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Selesai</a></li>
-                    <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Diantar</a></li>
-                </ul>
-            </div>
-        </div>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <div class="bottom-nav">

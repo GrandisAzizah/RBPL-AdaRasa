@@ -1,6 +1,38 @@
 <?php
-require 'functions.php';
-$menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
+
+session_start();
+if (!isset($_SESSION["login"])) {
+    header("location: login.php");
+    exit;
+}
+require '../functions.php';
+
+$pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
+m.nama_menu, m.gambar_menu FROM pesanan p 
+LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
+WHERE p.status_pemesanan = 'Diproses'
+ORDER BY p.tanggal_pesan ASC");
+
+$id_pesanan = isset($_GET['id_pesanan']) ? (int)$_GET['id_pesanan'] : 0;
+$status_baru = isset($_GET['status']) ? $_GET['status'] : '';
+
+$status_valid = ['Diterima', 'Diproses', 'Selesai', 'Diantar'];
+if ($id_pesanan > 0 && in_array($status_baru, $status_valid)) {
+    // Update status pesanan
+    $sql = "UPDATE pesanan SET status_pemesanan = '$status_baru' WHERE id_pesanan = $id_pesanan";
+    query($sql);
+}
+// Kelompokkan pesanan berdasarkan tanggal
+$pesanan_per_tanggal = [];
+foreach ($pesanan_terbaru as $p) {
+    $tanggal = date('d F Y', strtotime($p['tanggal_pesan']));
+    if (!isset($pesanan_per_tanggal[$tanggal])) {
+        $pesanan_per_tanggal[$tanggal] = [];
+    }
+    $pesanan_per_tanggal[$tanggal][] = $p;
+}
 ?>
 
 <!DOCTYPE html>
@@ -17,9 +49,22 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
 </head>
 
 <style>
+    body {
+        font-family: 'Aleo', serif;
+    }
+
+    .card {
+        box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    }
+
     .nav-underline .nav-link {
         color: #000 !important;
         font-size: 18px;
+    }
+
+    .nav-underline .nav-link.active {
+        color: #000 !important;
+        border-bottom: 2px solid #000 !important;
     }
 
     .nav-scroll {
@@ -87,6 +132,11 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
         display: none;
     }
 
+    .nav-underline .nav-link.active {
+        color: #000 !important;
+        border-bottom-color: #000 !important;
+    }
+
     .nav-container {
         -ms-overflow-style: none;
         scrollbar-width: none;
@@ -143,8 +193,20 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
     }
 
     h4 {
-        font-size: 20px;
+        font-size: 16px;
+        font-weight: bolder;
+        line-height: normal;
+    }
+
+    p {
+        font-size: 14px;
         font-weight: 400;
+        line-height: normal;
+    }
+
+    .card-title {
+        font-size: 16px;
+        font-weight: 600;
         line-height: normal;
     }
 </style>
@@ -154,10 +216,10 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
     <div class="container-main">
         <h3 class="mt-4 mb-4">Pesanan</h3>
 
-        <nav class="mb-4 navbar">
+        <!-- <nav class="mb-4 navbar">
             <ul class="nav nav-underline nav-fill w-100">
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="#">Diterima</a>
+                    <a class="nav-link" aria-current="page" href="pesananDapurDiterima.php">Diterima</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="pesananDapurDiproses.php">Diproses</a>
@@ -169,41 +231,66 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
                     <a class="nav-link" href="pesananDapurDiantar.php">Diantar</a>
                 </li>
             </ul>
+        </nav> -->
+
+        <?php $current_page = basename($_SERVER['PHP_SELF']); ?>
+
+        <nav class="mb-4 navbar">
+            <ul class="nav nav-underline nav-fill w-100">
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurDiterima.php' ? 'active' : '' ?>" href="pesananDapurDiterima.php">Diterima</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurDiproses.php' ? 'active' : '' ?>" href="pesananDapurDiproses.php">Diproses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurSelesai.php' ? 'active' : '' ?>" href="pesananDapurSelesai.php">Selesai</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $current_page == 'pesananDapurDiantar.php' ? 'active' : '' ?>" href="pesananDapurDiantar.php">Diantar</a>
+                </li>
+            </ul>
         </nav>
 
-        <h4>Tanggal</h4>
+        <?php if (empty($pesanan_terbaru)): ?>
+            <p class="text-muted" style="font-size: 16px; text-align: center; margin-top: 160px;">Belum ada pesanan</p>
+        <?php else: ?>
+            <?php foreach ($pesanan_per_tanggal as $tanggal => $pesanan_list): ?>
+                <h4>Tanggal <?= $tanggal ?></h4>
+                <?php foreach ($pesanan_list as $p): ?>
+                    <div class="card mb-3" style="max-width: 540px; outline: 1px solid black; position: relative;">
+                        <div class="row g-0">
+                            <!-- Gambar -->
+                            <div class="col-auto">
+                                <img src="<?= $p['gambar_menu'] ?>" class="card-img-top" alt="..." style="width: 100px; height: 100px; padding: 10px;">
+                            </div>
 
-        <div class="card mb-3" style="max-width: 540px; outline: 1px solid black; position: relative;">
-            <div class="row g-0">
-                <!-- Gambar -->
-                <div class="col-auto">
-                    <img src="rbpl-nasi-kuning.png" class="card-img-top" alt="..." style="width: 100px; height: 100px; padding: 10px;">
-                </div>
+                            <!-- Nama Pemesan dan detail lainnya -->
+                            <div class="col mb-5">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?= $p['nama_menu'] ?></h5>
+                                    <p class="mb-1">Porsi: <?= $p['jumlah'] ?></p>
+                                    <p class="mb-1"><?= date('H:i', strtotime($p['tanggal_pesan'])) ?></p>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Nama Pemesan dan detail lainnya -->
-                <div class="col mb-5">
-                    <div class="card-body">
-                        <h5 class="card-title">Nama Pemesan</h5>
-                        <p class="mb-1">Porsi</p>
-                        <p class="mb-1">Waktu pesan</p>
-                        <p class="mb-1"></p>
+                        <!-- Dropdown untuk mengubah status pesanan -->
+                        <div class="dropdown mb-1" style="position: absolute; bottom: 8px; right: 18px;">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Ubah Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="ubahStatusPesanan.php?id_pesanan=<?= $p['id_pesanan'] ?>&status=Diterima">Diterima</a></li>
+                                <li><a class="dropdown-item" href="ubahStatusPesanan.php?id_pesanan=<?= $p['id_pesanan'] ?>&status=Diproses">Diproses</a></li>
+                                <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Selesai</a></li>
+                                <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Diantar</a></li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Dropdown untuk mengubah status pesanan -->
-            <div class="dropdown mb-1" style="position: absolute; bottom: 8px; right: 18px;">
-                <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    Ubah Status
-                </button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="#">Diterima</a></li>
-                    <li><a class="dropdown-item" href="#">Diproses</a></li>
-                    <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Selesai</a></li>
-                    <li><a class="dropdown-item disabled" aria-disabled="true" href="#">Diantar</a></li>
-                </ul>
-            </div>
-        </div>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
     </div>
 
     <div class="bottom-nav">
@@ -224,7 +311,7 @@ $menu = query("SELECT * FROM pesanan ORDER BY id_pesanan ASC");
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><svg width="53" height="53" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <a class="nav-link" href="pengaturanDapur.php"><svg width="53" height="53" viewBox="0 0 53 53" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M25.3958 30.9165C34.5383 30.9165 41.9583 34.3836 41.9583 38.6457V44.1665H8.83333V38.6457C8.83333 34.3836 16.2533 30.9165 25.3958 30.9165ZM39.75 38.6457C39.75 35.5982 33.3237 33.1248 25.3958 33.1248C17.4679 33.1248 11.0417 35.5982 11.0417 38.6457V41.9582H39.75V38.6457ZM25.3958 11.0415C27.4457 11.0415 29.4117 11.8558 30.8612 13.3053C32.3107 14.7548 33.125 16.7208 33.125 18.7707C33.125 20.8206 32.3107 22.7865 30.8612 24.236C29.4117 25.6855 27.4457 26.4998 25.3958 26.4998C23.3459 26.4998 21.38 25.6855 19.9305 24.236C18.481 22.7865 17.6667 20.8206 17.6667 18.7707C17.6667 16.7208 18.481 14.7548 19.9305 13.3053C21.38 11.8558 23.3459 11.0415 25.3958 11.0415ZM25.3958 13.2498C23.9316 13.2498 22.5274 13.8315 21.492 14.8669C20.4567 15.9022 19.875 17.3065 19.875 18.7707C19.875 20.2349 20.4567 21.6391 21.492 22.6745C22.5274 23.7098 23.9316 24.2915 25.3958 24.2915C26.86 24.2915 28.2643 23.7098 29.2996 22.6745C30.335 21.6391 30.9167 20.2349 30.9167 18.7707C30.9167 17.3065 30.335 15.9022 29.2996 14.8669C28.2643 13.8315 26.86 13.2498 25.3958 13.2498Z" fill="black" />
                     </svg>
                 </a>
