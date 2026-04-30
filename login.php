@@ -25,7 +25,7 @@ if (isset($_SESSION["login"])) {
     } else if ($_SESSION['role'] == 'tim dapur') {
         header("location:dapur/pesananDapurDiterima.php");
     } else if ($_SESSION['role'] == 'tim pengantaran') {
-        header("location:pengantaranDtterima.php");
+        header("location:pengantaran\pengantaranDiterima.php");
     }
 }
 
@@ -37,20 +37,7 @@ if (isset($_POST["login"])) {
     $result = mysqli_query($conn, "SELECT * FROM user 
     WHERE username = '$username'");
 
-    //echo "username input: " . $username . "<br>";
-    //echo "rows found: " . mysqli_num_rows($result) . "<br>";
-    //die();
-
-    // cek apakah username ada di database
-    // menghitung ada berapa baris dari fungsi select
-    // jika ada maka bernilai 1, jika tidak ada maka 0
     if (mysqli_num_rows($result) === 1) {
-        //$row = mysqli_fetch_assoc($result);
-        //echo "username db: " . $row['username'] . "<br>";
-        //echo "role: " . $row['role'] . "<br>";
-        //echo "password verify: " . (password_verify($password, $row["password"]) ? 'true' : 'false') . "<br>";
-        //die();
-        // cek password
         $row = mysqli_fetch_assoc($result); // dalam row akan sudah ada datanya
         if ($username === $row["username"]) {
             // cek string sama atau tidak dengan hash nya
@@ -61,22 +48,16 @@ if (isset($_POST["login"])) {
                 $_SESSION['username'] = $row['username']; // pastiin session username tersimpan saat login
 
                 if ($row['role'] == 'admin') {
-                    header("location:admin/berandaAdmin.php");
+                    header("Location: /RBPL-AdaRasa/admin/berandaAdmin.php");
                 } else if ($row['role'] == 'tim dapur') {
-                    header("location:dapur/pesananDapurDiterima.php");
+                    header("Location: /RBPL-AdaRasa/dapur/pesananDapurDiterima.php");
                 } else if ($row['role'] == 'tim pengantaran') {
-                    header("location:pengantaran/pengantaranDiterima.php");
+                    header("Location: /RBPL-AdaRasa/pengantaran/pengantaranDiterima.php");
                 }
                 exit;
 
                 // cek cookies remember me
                 if (isset($_POST['remember'])) {
-                    // buat cookie
-                    // k itu id 
-                    // x itu username, username akan di enkripsi
-                    // enkripsi hash (parameter 1, parameter 2, parameter 3 - opsional)
-                    // parameter 1 -> pake algoritma apa
-                    // parameter 2 -> string mana yang mau di enkripsi
                     setcookie('k', $row['a'], time() + 60 * 60);
                     setcookie('x', hash('sha256', $row['username']), time() + 60 * 60);
                 }
