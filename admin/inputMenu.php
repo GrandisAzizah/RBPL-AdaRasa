@@ -156,10 +156,10 @@ if (isset($_POST["submit"])) {
                 <label for="kategori">Kategori Menu:<br></label>
                 <select name="kategori" id="kategori" required>
                     <option value="">Pilih Kategori</option>
-                    <option value="Makanan">Nasi Box</option>
-                    <option value="Minuman">Kue Kering</option>
-                    <option value="Minuman">Cake</option>
-                    <option value="Minuman">Kue Brownies</option>
+                    <option value="Nasi Box">Nasi Box</option>
+                    <option value="Kue Kering">Kue Kering</option>
+                    <option value="Cake">Cake</option>
+                    <option value="Kue Brownies">Kue Brownies</option>
                 </select><br><br>
 
                 <!-- INPUT GAMBAR -->
