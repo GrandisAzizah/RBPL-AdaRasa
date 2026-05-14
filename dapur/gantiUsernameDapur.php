@@ -1,22 +1,32 @@
 <?php
+require '../functions.php';
 session_start();
 
-require '../functions.php';
+$pesan = '';
+$tipe = '';
 
 if (isset($_POST["reset"])) {
-    $username = $_SESSION['username']; // pastiin session username tersimpan saat login
-    $username_lama = $_POST["username_lama"];
+    $username_lama = $_SESSION['username'];
     $username_baru = $_POST["username_baru"];
 
-    $result = mysqli_query($conn, "SELECT username FROM 
-    user WHERE username = '$username'");
-    $row = mysqli_fetch_assoc($result);
-    if ($username_lama === $row['username']) {
-        mysqli_query($conn, "UPDATE user SET username = '$username_baru' WHERE username = '$username'");
-        echo "<script>alert('Username berhasil diubah')</script>";
-        $_SESSION['username'] = $username_baru;
+    // Cek apakah username baru sama dengan username lama
+    if ($username_lama == $username_baru) {
+        $pesan = 'Username baru tidak boleh sama dengan username lama!';
+        $tipe = 'danger';
     } else {
-        echo "<script>alert('Username lama salah')</script>";
+        $hasil = ganti_usn($username_lama, $username_baru);
+
+        if ($hasil === true) {
+            $_SESSION['username'] = $username_baru; // Update session
+            $pesan = 'Username berhasil diganti!';
+            $tipe = 'success';
+        } elseif ($hasil === 'exists') {
+            $pesan = 'Username sudah dipakai oleh pengguna lain!';
+            $tipe = 'danger';
+        } else {
+            $pesan = 'Terjadi kesalahan, silakan coba lagi!';
+            $tipe = 'danger';
+        }
     }
 }
 ?>
@@ -27,8 +37,8 @@ if (isset($_POST["reset"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <title>Ganti Username</title>
 </head>
@@ -73,11 +83,6 @@ if (isset($_POST["reset"])) {
         gap: 8px;
     }
 
-    .menu-item .icon {
-        flex-shrink: 0;
-        width: 24px;
-    }
-
     h5 {
         margin: 0;
     }
@@ -86,11 +91,24 @@ if (isset($_POST["reset"])) {
         font-weight: 600;
         margin-top: 5px;
     }
+
+    .alert {
+        width: 250px;
+        margin: 0 auto 15px auto;
+        padding: 15px 20px;
+        border-radius: 8px;
+        outline: 1px solid #000;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 </style>
 
 <body>
     <div>
-        <div class="menu-item"><a href="pengaturanDapur.php">
+        <div class="menu-item">
+            <a href="pengaturanDapur.php">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_78_992)">
                         <path d="M19.825 25L25.425 30.6L24 32L16 24L24 16L25.425 17.4L19.825 23H32V25H19.825Z" fill="#1D1B20" />
@@ -100,19 +118,25 @@ if (isset($_POST["reset"])) {
                             <rect x="4" y="4" width="40" height="40" rx="20" fill="white" />
                         </clipPath>
                     </defs>
-                </svg></a>
-
+                </svg>
+            </a>
             <h5 class="text-center">Ganti Username</h5>
         </div>
 
+        <?php if ($pesan): ?>
+            <div class="alert alert-<?= $tipe ?> alert-dismissible fade show" role="alert">
+                <?= $pesan ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="container">
             <form action="" method="POST">
+                <label for="username_lama">Username Lama</label>
+                <input type="text" id="username_lama" name="username_lama" value="<?= $_SESSION['username'] ?>" readonly>
 
-                <label for="password">Username Lama</label><br>
-                <input type="text" id="username_lama" name="username_lama" required><br>
-
-                <label for="password">Username Baru</label><br>
-                <input type="text" id="username_baru" name="username_baru" required><br>
+                <label for="username_baru">Username Baru</label>
+                <input type="text" id="username_baru" name="username_baru" required>
 
                 <button type="submit" class="btn btn-dark mt-3" name="reset">Save</button>
             </form>
