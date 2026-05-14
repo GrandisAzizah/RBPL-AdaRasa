@@ -8,6 +8,7 @@ if (!isset($_SESSION["login"])) {
 }
 
 require '../functions.php';
+require '../alamat.php';
 
 if (!isset($_GET["id_pelanggan"]) || !is_numeric(($_GET["id_pelanggan"]))) { //is_numeric mencegah injection
     die("id_pelanggan tidak ditemukan"); //die untuk menghentikan eksekusi
@@ -173,7 +174,7 @@ if (isset($_POST["submit"])) {
 
                 <!-- INPUT GAMBAR -->
                 <label for="profil_foto">Profil:<br></label>
-                <input type="file" name="profil_foto" id="profil_foto" value="<?= $p['profil_foto'] ?>" required><br><br>
+                <input type="file" name="profil_foto" id="profil_foto" value="<?= $p['profil_foto'] ?>"><br><br>
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark">Kirim</button>
