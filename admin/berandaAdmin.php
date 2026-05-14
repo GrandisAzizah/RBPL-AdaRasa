@@ -157,7 +157,7 @@ $tipe = 'info';
             <p class="text-muted" style="font-size: 16px;">Belum ada pesanan</p>
         <?php else: ?>
             <?php foreach ($pesanan_terbaru as $p): ?>
-            <a href="showDetailPesananAdmin.php?id_pesanan=<?= $p['id_pesanan'] ?>" style="text-decoration: none; color: inherit;">
+                <a href="showDetailPesananAdmin.php?id_pesanan=<?= $p['id_pesanan'] ?>" style="text-decoration: none; color: inherit;">
                     <div class="container-order">
                         <div class="order-data card mb-3">
                             <div class="row g-0">
@@ -182,12 +182,25 @@ $tipe = 'info';
             <?php endforeach; ?>
 
             <?php if ($total_pesanan_db > 5): ?>
-                <!-- tombol more/show less -->
+                <?php if ($show_all == 'false'): ?>
+                    <a href="?show_all=true" class="btn load-more-button" style="text-decoration: none;">
+                        More
+                        <svg width="10" height="5" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M0 0L5 5L10 0H0Z" fill="black" />
+                        </svg>
+                    </a>
+                <?php else: ?>
+                    <a href="?show_all=false" class="btn load-more-button" style="text-decoration: none;">
+                        Show Less
+                        <svg width="10" height="5" viewBox="0 0 10 5" fill="none" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(180deg);">
+                            <path d="M0 0L5 5L10 0H0Z" fill="black" />
+                        </svg>
+                    </a>
+                <?php endif; ?>
             <?php endif; ?>
         <?php endif; ?>
 
-        <!-- PINDAHKAN KE SINI - DI LUAR ELSE PESANAN -->
-        <a href="listBelanjaBahan.php">
+        <a href=" listBelanjaBahan.php">
             <h5>Bahan Baku</h5>
         </a>
 
