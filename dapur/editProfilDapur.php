@@ -1,22 +1,35 @@
 <?php
 session_start();
+if (!isset($_SESSION["login"])) {
+    header("location: login.php");
+    exit;
+}
 
 require '../functions.php';
 
-if (isset($_POST["reset"])) {
-    $username = $_SESSION['username']; // pastiin session username tersimpan saat login
-    $username_lama = $_POST["username_lama"];
-    $username_baru = $_POST["username_baru"];
+// Ambil data user yang login dari session
+$username = $_SESSION['username'];
+$user = query("SELECT * FROM user WHERE username = '$username'")[0];
 
-    $result = mysqli_query($conn, "SELECT username FROM 
-    user WHERE username = '$username'");
-    $row = mysqli_fetch_assoc($result);
-    if ($username_lama === $row['username']) {
-        mysqli_query($conn, "UPDATE user SET username = '$username_baru' WHERE username = '$username'");
-        echo "<script>alert('Username berhasil diubah')</script>";
-        $_SESSION['username'] = $username_baru;
+$pesan = '';
+$tipe = '';
+
+$role = $user['role'];
+$is_tim_dapur = ($role == 'tim dapur');
+
+if (isset($_POST["submit"])) {
+    $result = editProfil($_POST, $username);
+
+    if ($result['success']) {
+        $pesan = $result['message'];
+        $tipe = 'success';
+        if (isset($result['username_baru'])) {
+            $_SESSION['username'] = $result['username_baru'];
+        }
+        $user = query("SELECT * FROM user WHERE username = '{$_SESSION['username']}'")[0];
     } else {
-        echo "<script>alert('Username lama salah')</script>";
+        $pesan = $result['message'];
+        $tipe = 'danger';
     }
 }
 ?>
@@ -27,8 +40,8 @@ if (isset($_POST["reset"])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Aleo:wght@300;400;600;700&display=swap" rel="stylesheet">
     <title>Edit Profil</title>
 </head>
@@ -73,11 +86,6 @@ if (isset($_POST["reset"])) {
         gap: 8px;
     }
 
-    .menu-item .icon {
-        flex-shrink: 0;
-        width: 24px;
-    }
-
     h5 {
         margin: 0;
     }
@@ -86,11 +94,32 @@ if (isset($_POST["reset"])) {
         font-weight: 600;
         margin-top: 5px;
     }
+
+    .alert {
+        width: 250px;
+        margin: 0 auto;
+        padding: 20px;
+        border-radius: 8px;
+        outline: black solid 1px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ffffff;
+        border-color: black;
+    }
+
+    .btn-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        box-shadow: none !important;
+    }
 </style>
 
 <body>
     <div>
-        <div class="menu-item"><a href="pengaturanDapur.php">
+        <div class="menu-item">
+            <a href="pengaturanDapur.php">
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_78_992)">
                         <path d="M19.825 25L25.425 30.6L24 32L16 24L24 16L25.425 17.4L19.825 23H32V25H19.825Z" fill="#1D1B20" />
@@ -100,21 +129,44 @@ if (isset($_POST["reset"])) {
                             <rect x="4" y="4" width="40" height="40" rx="20" fill="white" />
                         </clipPath>
                     </defs>
-                </svg></a>
-
-            <h5 class="text-center">Edit Profil</h5>
+                </svg>
+            </a>
+            <h5 class="text-center">Ganti Profil</h5>
         </div>
 
+        <?php if ($pesan): ?>
+            <div class="mt-3 mb-3 alert alert-<?= $tipe ?> alert-dismissible fade show" role="alert">
+                <?= $pesan ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
         <div class="container">
-            <form action="" method="POST">
+            <form action="" method="POST" enctype="multipart/form-data">
 
-                <label for="password">Username Lama</label><br>
-                <input type="text" id="username_lama" name="username_lama" required><br>
+                <!-- Tampilkan foto profil saat ini -->
+                <?php if (!empty($user['foto_profil'])): ?>
+                    <div class="text-center mb-3">
+                        <img src="<?= $user['foto_profil'] ?>" alt="Foto Profil" style="width: 100px; height: 100px; object-fit: cover; border-radius: 50%;">
+                    </div>
+                <?php endif; ?>
 
-                <label for="password">Username Baru</label><br>
-                <input type="text" id="username_baru" name="username_baru" required><br>
+                <!-- Hidden untuk gambar lama -->
+                <input type="hidden" name="gambarLama" value="<?= $user['foto_profil_user'] ?? '' ?>">
 
-                <button type="submit" class="btn btn-dark mt-3" name="reset">Save</button>
+                <label for="nama_depan">Nama Depan</label>
+                <input type="text" id="nama_depan" name="nama_depan" value="<?= $user['nama_depan'] ?? '' ?>">
+
+                <label for="nama_belakang">Nama Belakang</label>
+                <input type="text" id="nama_belakang" name="nama_belakang" value="<?= $user['nama_belakang'] ?? '' ?>">
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="<?= $user['email'] ?? '' ?>">
+
+                <label for="foto_profil_user">Foto Profil</label>
+                <input type="file" id="foto_profil_user" name="foto_profil_user" accept="image/*">
+
+                <button type="submit" class="btn btn-dark mt-3" name="submit">Save</button>
             </form>
         </div>
     </div>
