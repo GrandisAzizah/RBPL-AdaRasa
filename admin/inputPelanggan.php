@@ -8,6 +8,7 @@ if (!isset($_SESSION["login"])) {
 }
 
 require '../functions.php';
+require '../alamat.php';
 
 // alert jika input berhasil atau gagal
 $pesan = '';
