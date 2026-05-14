@@ -86,8 +86,9 @@ $row = $pesanan[0]; // Ambil data pertama
                             <p class="card-text mb-3"><strong>Packing: </strong><br> <?= $row['packing'] ?></strong></p>
                             <p class="card-text mb-3"><strong>Nama Pelanggan:</strong><br> <?= $row['nama_pelanggan'] ?></p>
                             <p class="card-text mb-3"><strong>Alamat:</strong><br> <?= $row['alamat'] ?></strong></p>
-                            <p class="card-text mb-2"><strong>Dipesan pada <?= $row['tanggal_pesan'] ?></strong></p>
-                            <p class="card-text mb-3"><strong>Pesanan untuk <?= $row['tanggal_antar'] ?></strong></p>
+                            <p class="card-text mb-2"><strong>Dipesan pada <?= date('d/m/Y H:i', strtotime($row['tanggal_pesan'])) ?></strong></p>
+                            <p class="card-text mb-3"><strong>Pesanan untuk <?= date('d/m/Y H:i', strtotime($row['tanggal_antar'])) ?></strong></p>
+                            <p class="card-text mb-3"><strong>Metode Pengantaran:</strong> <?= $row['metode_pengantaran'] ?></p>
                             <p class="card-text mb-3"><strong>Bahan Baku:</strong><br> <?= $row['bahan_baku'] ?></p>
                         </div>
                     </div>
