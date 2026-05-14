@@ -863,7 +863,7 @@ function getCoordinates($address)
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'AdaRasa-Catering/1.0 (admin@gmail.com)');
+    curl_setopt($ch, CURLOPT_USERAGENT, 'AdaRasa-Catering/1.0 (email@gmail.com)');
     $response = curl_exec($ch);
     curl_close($ch);
 
