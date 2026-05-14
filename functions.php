@@ -55,38 +55,44 @@ function registrasi($data)
     return mysqli_affected_rows($conn);
 }
 
-function ganti_pw($data)
+function ganti_pw($username, $password_lama, $password_baru)
 {
     global $conn;
 
-    $no_hp = htmlspecialchars($data['no_hp']);
-    $passwordNew = password_hash($data['passwordNew'], PASSWORD_DEFAULT);
+    $result = mysqli_query($conn, "SELECT password FROM user WHERE username = '$username'");
+    $row = mysqli_fetch_assoc($result);
 
-    $query = "UPDATE user SET password = ? WHERE no_hp = ?";
-    $stmt = mysqli_prepare($conn, $query);
-    mysqli_stmt_bind_param($stmt, "ss", $passwordNew, $no_hp);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    if (!$row) {
+        return false;
+    }
 
-    // jika gagal -1, jika berhasil 1
-    return mysqli_stmt_affected_rows($stmt);
+    if (password_verify($password_lama, $row['password'])) {
+        $hash_baru = password_hash($password_baru, PASSWORD_DEFAULT);
+        mysqli_query($conn, "UPDATE user SET password = '$hash_baru' WHERE username = '$username'");
+        return true;
+    } else {
+        return 'wrong';
+    }
 }
 
-function ganti_usn($data)
+function ganti_usn($username_lama, $username_baru)
 {
     global $conn;
 
-    $no_hp = htmlspecialchars($data['no_hp']);
-    $usernameNew = htmlspecialchars($data['usernameNew']);
+    // Cek apakah username baru sudah dipakai
+    $cek = mysqli_query($conn, "SELECT username FROM user WHERE username = '$username_baru'");
+    if (mysqli_num_rows($cek) > 0) {
+        return 'exists'; // Username sudah ada
+    }
 
-    $query = "UPDATE user SET username = ? WHERE no_hp = ?";
-    $stmt = mysqli_prepare($conn, $query);
-    mysqli_stmt_bind_param($stmt, "ss", $usernameNew, $no_hp);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
+    // Update username
+    $query = "UPDATE user SET username = '$username_baru' WHERE username = '$username_lama'";
+    mysqli_query($conn, $query);
 
-    // jika gagal -1, jika berhasil 1
-    return mysqli_stmt_affected_rows($stmt);
+    if (mysqli_affected_rows($conn) > 0) {
+        return true;
+    }
+    return false;
 }
 
 // untuk menu
@@ -521,116 +527,6 @@ function simpanDetailPesanan(
     return $inserted;
 }
 
-// function simpanDetailPesanan($id_pesanan, $bahan_dipilih, $packing, $jumlah_pesanan, $bahan_tambahan_dipilih = [], $bahan_tambahan_session = [])
-// {
-//     global $conn;
-
-//     // Loop bahan default
-//     foreach ($bahan_dipilih as $id_bahan) {
-//         $result = mysqli_query($conn, "SELECT * FROM bahan_baku WHERE id_bahan = $id_bahan");
-//         $bahan = mysqli_fetch_assoc($result);
-
-//         if ($bahan) {
-//             $jumlah_dipakai = $bahan['jumlah_default'] * $jumlah_pesanan;
-
-//             $queryStok = "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '{$bahan['nama_bahan']}' LIMIT 1";
-//             $resultStok = mysqli_query($conn, $queryStok);
-//             $stok = mysqli_fetch_assoc($resultStok);
-
-//             if (!$stok) continue;
-
-//             $id_stok = $stok['id_stok'];
-
-//             mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
-//                 fk_detail_pesanan,
-//                 fk_stok_detail,
-//                 fk_bahan_detail,
-//                 jumlah_dipakai,
-//                 packing
-//             ) VALUES (
-//                 '$id_pesanan',
-//                 '$id_stok',
-//                 '$id_bahan',
-//                 '$jumlah_dipakai',
-//                 '$packing'
-//             )");
-//         }
-//     }
-
-//     // Loop bahan tambahan dari session
-//     foreach ($bahan_tambahan_dipilih as $i) {
-//         if (!isset($bahan_tambahan_session[$i])) continue;
-//         $bt = $bahan_tambahan_session[$i];
-//         $nama = mysqli_real_escape_string($conn, $bt['nama_bahan']);
-//         $jumlah_dipakai = $bt['jumlah'] * $jumlah_pesanan;
-
-//         $cek = mysqli_query($conn, "SELECT id_stok FROM stok_bahan WHERE nama_bahan_stok = '$nama' LIMIT 1");
-//         $stok = mysqli_fetch_assoc($cek);
-//         if (!$stok) continue;
-
-//         $id_stok = $stok['id_stok'];
-//         mysqli_query($conn, "INSERT INTO detail_pesanan_bahan (
-//             fk_detail_pesanan,
-//             fk_stok_detail,
-//             fk_bahan_detail,
-//             jumlah_dipakai,
-//             packing
-//         ) VALUES (
-//             '$id_pesanan',
-//             '$id_stok',
-//             NULL,
-//             '$jumlah_dipakai',
-//             '$packing'
-//         )");
-//     }
-
-//     return mysqli_affected_rows($conn);
-// }
-
-// function editPesanan($data)
-// {
-//     global $conn;
-//     $id_pesanan = (int)$data['id_pesanan'];
-//     $fk_customer = (int)$data['nama_pelanggan'];
-//     $fk_pesanan_varian = !empty($data['fk_pesanan_varian']) ? (int)$data['fk_pesanan_varian'] : null;
-//     $jumlah = (int)$data['jumlah'];
-//     $catatan = mysqli_real_escape_string($conn, $data['catatan_khusus_pemesanan']);
-//     $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
-//     $metode = $data['metode_pengantaran'];
-
-//     if ($metode == 'Kurir Catering') {
-//         $status = 'Diterima';
-//     } else {
-//         $status = 'Selesai';
-//     }
-
-//     $status = mysqli_real_escape_string($conn, $status);
-
-//     // Ambil tanggal_pesan yang lama agar tidak berubah
-//     $result = mysqli_query($conn, "SELECT tanggal_pesan FROM pesanan WHERE id_pesanan = $id_pesanan");
-//     $row = mysqli_fetch_assoc($result);
-//     $tanggal_pesan_lama = $row['tanggal_pesan'];
-
-//     $fk_menu = (int)$data['fk_menu_pilih'];
-//     $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
-//     $harga_total = $harga_satuan * $jumlah;
-
-//     $query = "UPDATE pesanan SET
-//                 fk_pesanan_customer = '$fk_customer',
-//                 fk_pesanan_varian = '$fk_pesanan_varian',
-//                 jumlah = '$jumlah',
-//                 harga_total = '$harga_total',
-//                 catatan_khusus_pemesanan = '$catatan',
-//                 tanggal_antar = '$tanggal_antar',
-//                 metode_pengantaran = '$metode',
-//                 status_pemesanan = '$status',
-//                  tanggal_pesan = '$tanggal_pesan_lama'
-//               WHERE id_pesanan = $id_pesanan";
-
-//     mysqli_query($conn, $query);
-//     return mysqli_affected_rows($conn);
-// }
-
 function editPesanan($data)
 {
     global $conn;
@@ -758,9 +654,12 @@ function tambahPelanggan($data)
         return false; // insert tidak dijalankan
     }
 
-    $query = "INSERT INTO customer VALUES
-            (NULL, '$nama_pelanggan', '$no_hp', '$alamat','$profil_foto')
-    ";
+    $koordinat = getCoordinates($alamat);
+    $latitude = $koordinat ? $koordinat['lat'] : 'NULL';
+    $longitude = $koordinat ? $koordinat['lng'] : 'NULL';
+
+    $query = "INSERT INTO customer (nama_pelanggan, no_hp, alamat, profil_foto, latitude, longitude) 
+              VALUES ('$nama_pelanggan', '$no_hp', '$alamat', '$profil_foto', $latitude, $longitude)";
 
     mysqli_query($conn, $query);
 
@@ -776,6 +675,11 @@ function editPelanggan($data)
     $nama_pelanggan = htmlspecialchars($data["nama_pelanggan"]);
     $no_hp = htmlspecialchars($data["no_hp"]);
     $alamat = htmlspecialchars($data['alamat']);
+
+    // Ambil koordinat dari alamat baru
+    $koordinat = getCoordinates($alamat);
+    $latitude = $koordinat ? $koordinat['lat'] : 'NULL';
+    $longitude = $koordinat ? $koordinat['lng'] : 'NULL';
 
     // Cek apakah upload gambar baru
     if (isset($_FILES['profil_foto']) && $_FILES['profil_foto']['error'] !== 4) {
@@ -799,7 +703,9 @@ function editPelanggan($data)
                 nama_pelanggan = '$nama_pelanggan',
                 no_hp = '$no_hp',
                 alamat = '$alamat',
-                profil_foto = '$profil_foto'
+                profil_foto = '$profil_foto',
+                latitude = $latitude,
+                longitude = $longitude
               WHERE id_pelanggan = $id_pelanggan";
 
     mysqli_query($conn, $query);
@@ -873,4 +779,136 @@ function editStokBahan($data)
 
     mysqli_query($conn, $query);
     return mysqli_affected_rows($conn);
+}
+
+function upload_foto_profil()
+{
+    $namaFile = $_FILES['foto_profil_user']['name'];
+    $ukuranFile = $_FILES['foto_profil_user']['size'];
+    $error = $_FILES['foto_profil_user']['error'];
+    $tmpName = $_FILES['foto_profil_user']['tmp_name'];
+
+    if ($error == 4) {
+        return false;
+    }
+
+    $ekstensiGambarValid = ['jpg', 'png', 'jpeg', 'webp'];
+    $ekstensiGambar = explode('.', $namaFile);
+    $ekstensiGambar = strtolower(end($ekstensiGambar));
+
+    if (!in_array($ekstensiGambar, $ekstensiGambarValid)) {
+        return false;
+    }
+
+    if ($ukuranFile > 5000000) {
+        return false;
+    }
+
+    // Generate nama file unik
+    $namaFileBaru = uniqid() . '.' . $ekstensiGambar;
+
+    // Pindahkan file
+    move_uploaded_file($tmpName, '../img/' . $namaFileBaru);
+
+    // Return path lengkap
+    return '/RBPL-AdaRasa/img/' . $namaFileBaru;
+}
+
+function editProfil($data, $username_lama)
+{
+    global $conn;
+    $nama_depan = htmlspecialchars($data['nama_depan'] ?? '');
+    $nama_belakang = htmlspecialchars($data['nama_belakang'] ?? '');
+    $email = htmlspecialchars($data['email'] ?? '');
+    $foto_profil_user = $data['gambarLama'] ?? '';
+
+    if (isset($_FILES['foto_profil_user']) && $_FILES['foto_profil_user']['error'] !== 4) {
+        $upload_result = upload_foto_profil();
+
+        if ($upload_result && $upload_result !== false) {
+            if (!empty($foto_profil_user)) {
+                $file_lama = basename($foto_profil_user);
+                $path_lama = '../img/' . $file_lama;
+
+                if (file_exists($path_lama)) {
+                    unlink($path_lama);
+                }
+            }
+            $foto_profil_user = $upload_result;
+        }
+    }
+
+    // Query update
+    $query = "UPDATE user SET 
+              nama_depan = '$nama_depan',
+              nama_belakang = '$nama_belakang',
+              email = '$email',
+              foto_profil_user = '$foto_profil_user'
+              WHERE username = '$username_lama'";
+
+    $hasil = mysqli_query($conn, $query);
+
+    if ($hasil) {
+        return ['success' => true, 'message' => 'Data berhasil diedit!'];
+    } else {
+        return ['success' => false, 'message' => 'Data gagal diedit!'];
+    }
+}
+
+function getCoordinates($address)
+{
+    $address = urlencode($address);
+    $url = "https://nominatim.openstreetmap.org/search?q={$address}&format=json&limit=1";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'AdaRasa-Catering/1.0 (admin@gmail.com)');
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    $data = json_decode($response, true);
+
+    if (!empty($data)) {
+        return [
+            'lat' => $data[0]['lat'],
+            'lng' => $data[0]['lon']
+        ];
+    }
+    return null;
+}
+
+function tanggal_indonesia($tanggal)
+{
+    $hari = date('l', strtotime($tanggal));
+    $tanggal_num = date('d', strtotime($tanggal));
+    $bulan = date('F', strtotime($tanggal));
+    $tahun = date('Y', strtotime($tanggal));
+
+    $hari_indonesia = [
+        'Monday' => 'Senin',
+        'Tuesday' => 'Selasa',
+        'Wednesday' => 'Rabu',
+        'Thursday' => 'Kamis',
+        'Friday' => 'Jumat',
+        'Saturday' => 'Sabtu',
+        'Sunday' => 'Minggu'
+    ];
+
+    $bulan_indonesia = [
+        'January' => 'Januari',
+        'February' => 'Februari',
+        'March' => 'Maret',
+        'April' => 'April',
+        'May' => 'Mei',
+        'June' => 'Juni',
+        'July' => 'Juli',
+        'August' => 'Agustus',
+        'September' => 'September',
+        'October' => 'Oktober',
+        'November' => 'November',
+        'December' => 'Desember'
+    ];
+
+    return $hari_indonesia[$hari] . ', ' . $tanggal_num . ' ' . $bulan_indonesia[$bulan] . ' ' . $tahun;
 }
