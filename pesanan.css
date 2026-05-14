@@ -93,7 +93,7 @@ body {
 
     .card-notif {
         min-height: 10px;
-        max-height: 100px;
+        max-height: 150px;
         border-radius: 5px;
         outline: black solid 1.2px;
         max-width: 540px;
