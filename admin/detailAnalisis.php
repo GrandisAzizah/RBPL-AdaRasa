@@ -8,125 +8,93 @@ if (!isset($_SESSION["login"])) {
 require '../functions.php';
 
 $periode = $_GET['periode'] ?? '1hari';
-$format = $_GET['format'] ?? 'html';
-
-// Tentukan filter SQL dan judul berdasarkan periode
 if ($periode == '1hari') {
     $filter = "DATE(p.tanggal_pesan) = CURDATE()";
-    $judul_periode = "Harian - " . date('d F Y');
-    $nama_file = "Detail_Laporan_Penjualan_Harian_" . date('Y-m-d');
+    $judul_periode = "Laporan Harian - " . tanggal_indonesia(date('Y-m-d'));
 } elseif ($periode == '1minggu') {
     $filter = "p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)";
-    $start_week = date('d F Y', strtotime('-6 days'));
-    $end_week = date('d F Y');
-    $judul_periode = "Mingguan ($start_week - $end_week)";
-    $nama_file = "Detail_Laporan_Penjualan_Mingguan_" . date('Y-m-d');
+    $start_week = date('d', strtotime('-6 days'));
+    $end_week_full = tanggal_indonesia(date('Y-m-d'));
+
+    // Ambil hanya tanggal dan bulan dari hasil tanggal_indonesia
+    $end_week_parts = explode(', ', $end_week_full);
+    $end_week = $end_week_parts[1]; // "14 Mei 2026"
+
+    $judul_periode = "Laporan Mingguan $start_week - $end_week";
 } elseif ($periode == '1bulan') {
     $filter = "MONTH(p.tanggal_pesan) = MONTH(CURDATE()) AND YEAR(p.tanggal_pesan) = YEAR(CURDATE())";
-    $judul_periode = "Bulanan - " . date('F Y');
-    $nama_file = "Detail_Laporan_Penjualan_Bulanan_" . date('Y-m');
+    $bulan_indonesia = [
+        'January' => 'Januari',
+        'February' => 'Februari',
+        'March' => 'Maret',
+        'April' => 'April',
+        'May' => 'Mei',
+        'June' => 'Juni',
+        'July' => 'Juli',
+        'August' => 'Agustus',
+        'September' => 'September',
+        'October' => 'Oktober',
+        'November' => 'November',
+        'December' => 'Desember'
+    ];
+    $judul_periode = "Laporan Bulanan " . $bulan_indonesia[date('F')] . " " . date('Y');
 } else {
     $filter = "YEAR(p.tanggal_pesan) = YEAR(CURDATE())";
-    $judul_periode = "Tahunan - " . date('Y');
-    $nama_file = "Detail_Laporan_Penjualan_Tahunan_" . date('Y');
+    $judul_periode = "Laporan Tahunan " . date('Y');
 }
 
-// Cek apakah ada pesanan dalam periode tersebut
 $cek_pesanan = query("SELECT COUNT(*) as total FROM pesanan p WHERE $filter")[0]['total'];
 $ada_pesanan = $cek_pesanan > 0;
 
 if ($ada_pesanan) {
-    // Ambil data detail per menu dan varian
-    $data = query("
-        SELECT 
-            m.nama_menu,
-            mv.takaran,
-            COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
-            SUM(p.jumlah) as jumlah_porsi_dipesan
-        FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
-        WHERE $filter
-        GROUP BY m.id_menu, mv.id_varian
-        ORDER BY jumlah_porsi_dipesan DESC
-    ");
+    if ($periode == '1hari') {
+        $data = query("SELECT 
+                m.nama_menu,
+                mv.takaran,
+                COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
+                SUM(p.jumlah) as jumlah_porsi_dipesan
+            FROM pesanan p
+            JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+            JOIN menu m ON mv.fk_menu_varian = m.id_menu
+            WHERE $filter
+            GROUP BY m.id_menu, mv.id_varian
+            ORDER BY jumlah_porsi_dipesan DESC
+        ");
+    } else {
+        $data = query("SELECT 
+                DATE(p.tanggal_pesan) as tanggal_pesan,
+                m.nama_menu,
+                mv.takaran,
+                COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
+                SUM(p.jumlah) as jumlah_porsi_dipesan
+            FROM pesanan p
+            JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+            JOIN menu m ON mv.fk_menu_varian = m.id_menu
+            WHERE $filter
+            GROUP BY DATE(p.tanggal_pesan), m.id_menu, mv.id_varian
+            ORDER BY tanggal_pesan DESC, jumlah_porsi_dipesan DESC
+        ");
+    }
 
-    // Hitung menu paling laris dan jarang dipesan
-    $laris = query("
-        SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total
+    $laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
         JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         JOIN menu m ON mv.fk_menu_varian = m.id_menu
         WHERE $filter
         GROUP BY m.id_menu, mv.id_varian
         ORDER BY total DESC
-        LIMIT 1
-    ")[0] ?? null;
+        LIMIT 1")[0] ?? null;
 
-    $jarang = query("
-        SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total
+    $jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
         JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         JOIN menu m ON mv.fk_menu_varian = m.id_menu
         WHERE $filter
         GROUP BY m.id_menu, mv.id_varian
         ORDER BY total ASC
-        LIMIT 1
-    ")[0] ?? null;
+        LIMIT 1")[0] ?? null;
 
-    // Total pesanan dibuat dan diterima
     $total_dibuat = query("SELECT COUNT(*) as total FROM pesanan p WHERE $filter")[0]['total'];
-    $total_diterima = query("SELECT COUNT(*) as total FROM pesanan p WHERE status_pemesanan = 'Diterima' AND $filter")[0]['total'];
-}
-
-// Jika request download PDF
-if ($format == 'pdf') {
-    require_once('../tcpdf/tcpdf.php');
-
-    $html = '
-    <h2 style="text-align:center">Detail Laporan Penjualan</h2>
-    <h4 style="text-align:center">Periode: ' . $judul_periode . '</h4>
-    <br><br>';
-
-    if (!$ada_pesanan) {
-        $html .= '<p style="text-align:center; color:red;">Belum ada pesanan pada periode ' . $judul_periode . '</p>';
-    } else {
-        $html .= '
-        <table border="1" cellpadding="6" style="width:100%; border-collapse:collapse;">
-            <tr>
-                <td colspan="2"><strong>Menu paling laris:</strong></td>
-                <td colspan="2">' . ($laris ? $laris['nama_menu'] . ' (' . $laris['takaran'] . ')' : '-') . '</td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>Menu jarang dipesan:</strong></td>
-                <td colspan="2">' . ($jarang ? $jarang['nama_menu'] . ' (' . ($jarang['takaran'] ?? '-') . ')' : '-') . '</td>
-            </tr>
-        </table>
-        <br>
-        <h4>Detail Menu</h4>
-        <table border="1" cellpadding="6" style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr><th>Nama Menu</th><th>Takaran</th><th>Frekuensi Dipesan</th><th>Jumlah Porsi</th></tr>
-            </thead>
-            <tbody>';
-        foreach ($data as $row) {
-            $html .= '<tr>
-                <td>' . $row['nama_menu'] . '</td>
-                <td>' . ($row['takaran'] ?? '-') . '</td>
-                <td>' . $row['frekuensi_dipesan'] . '</td>
-                <td>' . $row['jumlah_porsi_dipesan'] . '</td>
-            </tr>';
-        }
-        $html .= '
-            </tbody>
-        </table>
-        <br>
-        <table border="1" cellpadding="6" style="width:100%; border-collapse:collapse;">
-            <tr><td><strong>Jumlah pesanan dibuat:</strong></td><td>' . $total_dibuat . '</td></tr>
-            <tr><td><strong>Jumlah pesanan diterima:</strong></td><td>' . $total_diterima . '</td></tr>
-        </table>';
-    }
-    exit;
 }
 ?>
 
@@ -175,7 +143,7 @@ if ($format == 'pdf') {
                     <path d="M31.6667 19H6.33337M6.33337 19L15.8334 9.5M6.33337 19L15.8334 28.5" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </a>
-            <h5 style="margin: 0;">LAPORAN <?= strtoupper($judul_periode) ?></h5>
+            <h5 style="margin: 0;"><?= strtoupper($judul_periode) ?></h5>
         </div>
 
         <?php if (!$ada_pesanan): ?>
@@ -183,38 +151,48 @@ if ($format == 'pdf') {
                 Belum ada pesanan pada periode <?= $judul_periode ?>
             </div>
         <?php else: ?>
-            <table class="table table-bordered mt-4">
-                <tr>
-                    <td colspan="2"><strong>Menu paling laris:</strong></td>
-                    <td colspan="2"><?= $laris ? $laris['nama_menu'] . ' (' . $laris['takaran'] . ')' : '-' ?></td>
-                </tr>
-                <tr>
-                    <td colspan="2"><strong>Menu jarang dipesan:</strong></td>
-                    <td colspan="2"><?= $jarang ? $jarang['nama_menu'] . ' (' . ($jarang['takaran'] ?? '-') . ')' : '-' ?></td>
-                </tr>
-            </table>
+            <div class="mb-3">
+                <table class="table table-bordered mt-4">
+                    <tr>
+                        <td colspan="2"><strong>Menu paling laris:</strong></td>
+                        <td colspan="2">
+                            <?= $laris ? $laris['nama_menu'] . ' (' . $laris['takaran'] . ') - ' . $laris['frekuensi'] . ' kali dipesan (' . $laris['total'] . ' porsi)' : '-' ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><strong>Menu jarang dipesan:</strong></td>
+                        <td colspan="2">
+                            <?= $jarang ? $jarang['nama_menu'] . ' (' . ($jarang['takaran'] ?? '-') . ') - ' . $jarang['frekuensi'] . ' kali dipesan (' . $jarang['total'] . ' porsi)' : '-' ?>
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-            <button onclick="window.print()" class="btn-download" style="background-color: #6750A4; color: white; border: none; padding: 8px 20px; border-radius: 20px;">
-                Cetak/Simpan PDF
-            </button>
+            <button onclick="window.print()" class="btn-download mb-3">Cetak/Simpan PDF</button>
 
             <h6 class="mt-4">Detail Menu</h6>
             <table class="table table-bordered">
                 <thead class="table-light">
                     <tr>
+                        <?php if ($periode != '1hari'): ?>
+                            <th>Tanggal Pesan</th>
+                        <?php endif; ?>
                         <th>Nama Menu</th>
                         <th>Takaran</th>
-                        <th>Frekuensi Dipesan</th>
-                        <th>Jumlah Porsi Dipesan</th>
+                        <th>Jumlah Porsi</th>
+                        <th>Frekuensi Pesan</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($data as $row): ?>
                         <tr>
+                            <?php if ($periode != '1hari'): ?>
+                                <td><?= tanggal_indonesia($row['tanggal_pesan']) ?></td>
+                            <?php endif; ?>
                             <td><?= $row['nama_menu'] ?></td>
                             <td><?= $row['takaran'] ?? '-' ?></td>
-                            <td><?= $row['frekuensi_dipesan'] ?></td>
                             <td><?= $row['jumlah_porsi_dipesan'] ?></td>
+                            <td><?= $row['frekuensi_dipesan'] ?> kali</td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -223,11 +201,7 @@ if ($format == 'pdf') {
             <table class="table table-bordered mt-3">
                 <tr>
                     <td><strong>Jumlah pesanan dibuat:</strong></td>
-                    <td><?= $total_dibuat ?></td>
-                </tr>
-                <tr>
-                    <td><strong>Jumlah pesanan diterima:</strong></td>
-                    <td><?= $total_diterima ?></td>
+                    <td><?= $total_dibuat ?> kali</td>
                 </tr>
             </table>
         <?php endif; ?>
