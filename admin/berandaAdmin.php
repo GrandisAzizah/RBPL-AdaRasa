@@ -172,7 +172,7 @@ $tipe = 'info';
                                         <p class="card-title">
                                             <?= $p['nama_pelanggan'] ?> - <?= $p['nama_menu'] ?>
                                         </p>
-                                        <p class="card-detail"><?= $p['tanggal_antar'] ?></p>
+                                        <p class="card-detail"><?= date('d/m/Y', strtotime($p['tanggal_antar'])) ?></p>
                                     </div>
                                 </div>
                             </div>
