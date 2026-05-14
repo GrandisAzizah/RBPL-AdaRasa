@@ -8,37 +8,14 @@ if (!isset($_SESSION["login"])) {
 require '../functions.php';
 require '../alamat.php';
 
-$sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'tanggal_pesan';
-$sort_order = isset($_GET['order']) ? $_GET['order'] : 'ASC';
-
-if ($sort_by == 'jarak_terdekat') {
-    $order_by = "jarak ASC";
-} elseif ($sort_by == 'jarak_terjauh') {
-    $order_by = "jarak DESC";
-} elseif ($sort_by == 'tanggal_antar') {
-    $order_by = "p.tanggal_antar $sort_order";
-} else {
-    $order_by = "p.tanggal_pesan $sort_order";
-}
-
-$pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, c.latitude, c.longitude, mv.takaran,
-    m.nama_menu, m.gambar_menu,
-    (
-        6371 * acos(
-            cos(radians($resto_lat)) * cos(radians(c.latitude)) *
-            cos(radians(c.longitude) - radians($resto_lng)) +
-            sin(radians($resto_lat)) * sin(radians(c.latitude))
-        )
-    ) AS jarak
-    FROM pesanan p 
-    LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
-    LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    WHERE p.status_pengantaran = 'Diterima'
-    AND p.status_pemesanan = 'Diantar'
-    AND p.metode_pengantaran = 'Kurir Catering'
-    ORDER BY $order_by
-");
+$pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
+m.nama_menu, m.gambar_menu FROM pesanan p 
+LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
+LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
+WHERE (p.metode_pengantaran = 'Kurir Catering' AND p.status_pengantaran = 'Selesai' AND p.status_pemesanan = 'Diantar')
+   OR (p.metode_pengantaran = 'Ojek Online' AND p.status_pemesanan = 'Diantar')
+ORDER BY p.tanggal_pesan ASC");
 
 $pesanan_per_tanggal = [];
 foreach ($pesanan_terbaru as $p) {
@@ -169,11 +146,6 @@ foreach ($pesanan_terbaru as $p) {
         color: #000 !important;
         border-bottom: 2px solid #000 !important;
     }
-
-    .btn-secondary-sort {
-        background-color: white !important;
-        outline: 2px solid #000 !important;
-    }
 </style>
 
 <body>
@@ -203,34 +175,6 @@ foreach ($pesanan_terbaru as $p) {
         <?php if (empty($pesanan_terbaru)): ?>
             <p class="text-muted" style="font-size: 16px; text-align: center; margin-top: 160px;">Belum ada pesanan</p>
         <?php else: ?>
-
-            <div class="row g-3 align-items-center mb-3">
-                <div class="col-auto">
-                    <h4 class="mb-0">Diurutkan Berdasarkan:</h4>
-                </div>
-                <div class="col-auto">
-                    <div class="dropdown-sort">
-                        <button class="btn btn-secondary-sort dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <?php
-                            $sort_label = '';
-                            if ($sort_by == 'jarak_terdekat') $sort_label = 'Jarak Terdekat';
-                            elseif ($sort_by == 'jarak_terjauh') $sort_label = 'Jarak Terjauh';
-                            elseif ($sort_by == 'tanggal_antar') $sort_label = 'Jadwal Pengantaran';
-                            elseif ($sort_by == 'tanggal_pesan') $sort_label = 'Waktu Pemesanan';
-                            else $sort_label = 'Pilih';
-                            echo $sort_label;
-                            ?>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="?sort=jarak_terdekat">Jarak Terdekat</a></li>
-                            <li><a class="dropdown-item" href="?sort=jarak_terjauh">Jarak Terjauh</a></li>
-                            <li><a class="dropdown-item" href="?sort=tanggal_antar&order=ASC">Jadwal Pengantaran</a></li>
-                            <li><a class="dropdown-item" href="?sort=tanggal_pesan&order=ASC">Waktu Pemesanan</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
             <?php foreach ($pesanan_per_tanggal as $tanggal => $pesanan_list): ?>
                 <h4><?= $tanggal ?></h4>
                 <?php foreach ($pesanan_list as $p): ?>
@@ -246,35 +190,45 @@ foreach ($pesanan_terbaru as $p) {
                                 <div class="col mb-5">
                                     <div class="card-body">
                                         <h5 class="card-title"><?= $p['nama_menu'] ?></h5>
-                                        <p class="mb-1 small text-muted">Jarak: <?= round($p['jarak'], 1) ?> km</p>
                                         <p class="mb-1">Porsi: <?= $p['jumlah'] ?></p>
-                                        <p class="mb-1">Diantar:
-                                            <?= date('d F Y H:i', strtotime($p['tanggal_antar'])) ?>
-                                        </p>
-                                        <p class="mb-1">Dipesan:
-                                            <?= date('d F Y', strtotime($p['tanggal_pesan'])) ?>
-                                        </p>
+                                        <p class="mb-1"><?= date('H:i', strtotime($p['tanggal_pesan'])) ?></p>
+                                        <p class="mb-1 text-muted small">Metode: <?= $p['metode_pengantaran'] ?></p>
                                     </div>
                                 </div>
                             </div>
                     </a>
-
-                    <!-- Dropdown untuk mengubah status pesanan -->
-                    <div class="dropdown mb-1" style="position: absolute; bottom: 8px; right: 18px;">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Ubah Status
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Diterima')">Diterima</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Dalam Proses')">Dalam Proses</a></li>
-                            <li><a class="dropdown-item disabled" href="#">Sedang Diantar</a></li>
-                            <li><a class="dropdown-item disabled" href="#">Selesai</a></li>
-                        </ul>
-                    </div>
+                    <!-- Dropdown hanya untuk Kurir Catering -->
+                    <?php
+                    $selesai_kemarin = false;
+                    if ($p['status_pengantaran'] == 'Selesai') {
+                        $waktu_selesai = strtotime($p['tanggal_antar']);
+                        $selesai_kemarin = (time() - $waktu_selesai) > 86400; // 86400 detik = 1 hari
+                    }
+                    ?>
+                    <?php if ($p['metode_pengantaran'] == 'Kurir Catering' && !$selesai_kemarin): ?>
+                        <div class="dropdown mb-1" style="position: absolute; bottom: 8px; right: 18px;">
+                            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Ubah Status
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Diterima')">Diterima</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Dalam Proses')">Dalam Proses</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Sedang Diantar')">Sedang Diantar</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Selesai')">Selesai</a></li>
+                            </ul>
+                        </div>
+                    <?php else: ?>
+                        <!-- Ojek Online: tidak ada dropdown, status otomatis -->
+                        <div style="position: absolute; bottom: 8px; right: 18px;">
+                            <button class="btn btn-success btn-sm" disabled style="background-color: #9a9a9a; border: none; padding: 4px 12px; border-radius: 10px;">Selesai
+                            </button>
+                        </div>
+                    <?php endif; ?>
     </div>
 <?php endforeach; ?>
 <?php endforeach; ?>
 <?php endif; ?>
+
 </div>
 
 <div class="bottom-nav">

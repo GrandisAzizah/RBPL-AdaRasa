@@ -34,7 +34,7 @@ $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, c.latitude, c.longitude,
     LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
     LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
     LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    WHERE p.status_pengantaran = 'Diterima'
+    WHERE p.status_pengantaran = 'Dalam Proses'
     AND p.status_pemesanan = 'Diantar'
     AND p.metode_pengantaran = 'Kurir Catering'
     ORDER BY $order_by
@@ -266,8 +266,8 @@ foreach ($pesanan_terbaru as $p) {
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Diterima')">Diterima</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Dalam Proses')">Dalam Proses</a></li>
-                            <li><a class="dropdown-item disabled" href="#">Sedang Diantar</a></li>
+                            <li><a class="dropdown-item disabled" href="#">Dalam Proses</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Sedang Diantar')">Sedang Diantar</a></li>
                             <li><a class="dropdown-item disabled" href="#">Selesai</a></li>
                         </ul>
                     </div>

@@ -11,6 +11,7 @@ require '../alamat.php';
 $sort_by = isset($_GET['sort']) ? $_GET['sort'] : 'tanggal_pesan';
 $sort_order = isset($_GET['order']) ? $_GET['order'] : 'ASC';
 
+// Bangun ORDER BY berdasarkan pilihan
 if ($sort_by == 'jarak_terdekat') {
     $order_by = "jarak ASC";
 } elseif ($sort_by == 'jarak_terjauh') {
@@ -21,6 +22,7 @@ if ($sort_by == 'jarak_terdekat') {
     $order_by = "p.tanggal_pesan $sort_order";
 }
 
+// Query dengan perhitungan jarak (Haversine formula)
 $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, c.latitude, c.longitude, mv.takaran,
     m.nama_menu, m.gambar_menu,
     (
@@ -34,7 +36,7 @@ $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, c.latitude, c.longitude,
     LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
     LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
     LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    WHERE p.status_pengantaran = 'Diterima'
+    WHERE p.status_pengantaran = 'Sedang Diantar'
     AND p.status_pemesanan = 'Diantar'
     AND p.metode_pengantaran = 'Kurir Catering'
     ORDER BY $order_by
@@ -268,7 +270,7 @@ foreach ($pesanan_terbaru as $p) {
                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Diterima')">Diterima</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Dalam Proses')">Dalam Proses</a></li>
                             <li><a class="dropdown-item disabled" href="#">Sedang Diantar</a></li>
-                            <li><a class="dropdown-item disabled" href="#">Selesai</a></li>
+                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="updateStatus(<?= $p['id_pesanan'] ?>, 'Selesai')">Selesai</a></li>
                         </ul>
                     </div>
     </div>
