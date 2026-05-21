@@ -132,6 +132,16 @@ if (isset($_POST["login"])) {
         right: 10px;
         box-shadow: none !important;
     }
+
+    a {
+        text-decoration: none !important;
+        color: black !important;
+    }
+
+    .regist {
+        font-size: 14px;
+        margin-top: 10px !important;
+    }
 </style>
 
 <script>
@@ -167,6 +177,7 @@ if (isset($_POST["login"])) {
                 <label for="username">Username</label><br>
                 <input type="text" id="username" name="username" required><br><br>
 
+                <label for="passworq">Password</label><br>
                 <div style="position: relative;" class="mb-3">
                     <input type="password" id="password" name="password" required style="padding-right: 36px;">
                     <span onclick="togglePassword()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer;" id="toggleIcon">
@@ -178,7 +189,8 @@ if (isset($_POST["login"])) {
                         </svg>
                     </span>
                 </div>
-                <button type="submit" value="login" class="btn btn-dark" name="login">Login</button>
+                <button type="submit" value="login" class="btn btn-dark mb-3" name="login">Login</button>
+                <span class="regist">Belum punya akun? <a href="registrasi.php"><u>Daftar di sini</u></a></span>
             </form>
         </div>
 </body>

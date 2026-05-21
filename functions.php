@@ -25,7 +25,7 @@ function registrasi($data)
     // mysqli_real_escape_string memungkinkan user input password dengan tanda kutip
     $password = mysqli_real_escape_string($conn, $data["password"]);
     $password2 = mysqli_real_escape_string($conn, $data["password2"]);
-    $no_hp = htmlspecialchars(stripslashes($data["no_hp"]));
+    $email = htmlspecialchars(stripslashes($data["email"]));
 
     // cek apakah username udah ada
     $result = mysqli_query($conn, "SELECT username FROM 
@@ -50,7 +50,7 @@ function registrasi($data)
     $password = password_hash($password, PASSWORD_DEFAULT);
 
     // tambahkan userbaru ke database
-    mysqli_query($conn, "INSERT INTO user (username, password, no_hp, role) VALUES ('$username', '$password', '$no_hp', 'user')");
+    mysqli_query($conn, "INSERT INTO user (username, password, email, role) VALUES ('$username', '$password', '$email', 'user')");
 
     return mysqli_affected_rows($conn);
 }
@@ -111,7 +111,7 @@ function tambahMenu($data)
         return false;
     }
 
-    $query = "INSERT INTO menu (nama_menu, harga_menu, gambar_menu, kategori_menu) 
+    $query = "INSERT INTO menu (nama_menu, harga_menu, gambar_menu, kategori) 
               VALUES ('$nama_menu', '$harga_menu', '$gambar_menu', '$kategori')";
     mysqli_query($conn, $query);
     $id_menu = mysqli_insert_id($conn);
@@ -244,7 +244,7 @@ function editMenu($data)
                 nama_menu = '$nama_menu',
                 harga_menu = '$harga',
                 gambar_menu = '$gambar_menu',
-                kategori_menu = '$kategori'
+                kategori = '$kategori'
               WHERE id_menu = $id_menu";
     mysqli_query($conn, $query);
 
@@ -314,14 +314,42 @@ function tambahBahanBaku($data)
     return $berhasil;
 }
 
+// function editBahan($data)
+// {
+//     global $conn;
+//     $id_bahan = $data["id_bahan"];
+//     $nama_bahan = htmlspecialchars($data['nama_bahan']);
+//     $jumlah_default = parseFraksi($data['jumlah_default']);
+//     $satuan = htmlspecialchars($data['satuan']);
+//     $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
+
+//     $query = "UPDATE bahan_baku SET
+//                 nama_bahan = '$nama_bahan',
+//                 jumlah_default = '$jumlah_default',
+//                 satuan = '$satuan',
+//                 fk_varian_bahan = $fk_varian_bahan
+//               WHERE id_bahan = $id_bahan";
+
+//     mysqli_query($conn, $query);
+//     return mysqli_affected_rows($conn);
+// }
+
 function editBahan($data)
 {
     global $conn;
     $id_bahan = $data["id_bahan"];
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
-    $jumlah_default = parseFraksi($data['jumlah_default']);
     $satuan = htmlspecialchars($data['satuan']);
-    $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
+
+    if (isset($data['jumlah_default']) && is_array($data['jumlah_default'])) {
+        $jumlah_default_raw = $data['jumlah_default'][0] ?? '0';
+        $fk_varian_bahan = isset($data['fk_varian_bahan'][0]) ? (int)$data['fk_varian_bahan'][0] : 'NULL';
+    } else {
+        $jumlah_default_raw = $data['jumlah_default'] ?? '0';
+        $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
+    }
+
+    $jumlah_default = parseFraksi($jumlah_default_raw);
 
     $query = "UPDATE bahan_baku SET
                 nama_bahan = '$nama_bahan',
@@ -754,11 +782,27 @@ function inputStokBahan($data)
     return mysqli_affected_rows($conn);
 }
 
+// function hapusStokBahan($id_stok)
+// {
+//     global $conn;
+
+//     $id_stok = (int)$id_stok;
+//     mysqli_query($conn, "DELETE FROM stok_bahan WHERE id_stok = $id_stok");
+//     return mysqli_affected_rows($conn);
+// }
+
 function hapusStokBahan($id_stok)
 {
     global $conn;
 
     $id_stok = (int)$id_stok;
+    $cek = mysqli_query($conn, "SELECT COUNT(*) as total FROM bahan_baku WHERE fk_bahan_stok = $id_stok");
+    $row = mysqli_fetch_assoc($cek);
+
+    if ($row['total'] > 0) {
+        return -1;
+    }
+
     mysqli_query($conn, "DELETE FROM stok_bahan WHERE id_stok = $id_stok");
     return mysqli_affected_rows($conn);
 }
