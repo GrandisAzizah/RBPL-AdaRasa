@@ -71,12 +71,15 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok $sort
         </div>
 
         <?php if (empty($bahan_tersedia)): ?>
-            <p class="text-center mt-5" style="color: #979696; margin-top: 20px; height: 70vh; display: flex; align-items: center; justify-content: center;">Belum ada data stok bahan baku yang ditambahkan</p>
+            <p class="text-center mt-5">Belum ada data stok bahan baku yang ditambahkan</p>
         <?php else: ?>
-            <?php foreach ($bahan_tersedia as $b): ?>
+            <?php foreach ($bahan_tersedia as $b):
+                // Cek apakah stok sedang dipakai
+                $cek_pakai = query("SELECT COUNT(*) as total FROM bahan_baku WHERE fk_bahan_stok = {$b['id_stok']}")[0]['total'];
+                $bisa_hapus = $cek_pakai == 0;
+            ?>
                 <div class="card-bahan">
                     <div class="row g-0 align-items-center">
-                        <!-- Isi -->
                         <div class="col">
                             <div class="card-body-bahan">
                                 <h5 class="card-title-bahan"><?= $b['nama_bahan_stok'] ?></h5>
@@ -85,14 +88,19 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok $sort
                         </div>
                         <div class="col-auto me-3">
                             <a href="editStokTersedia.php?id_stok=<?= $b['id_stok'] ?>" class="edit-btn btn btn-dark btn-sm">Edit</a>
-                            <a href="#" class="delete-btn btn btn-danger btn-sm" onclick="setHapusUrl('hapusStokBahan.php?id_stok=<?= $b['id_stok'] ?>')">Hapus</a>
+
+                            <?php if ($bisa_hapus): ?>
+                                <a href="#" class="delete-btn btn btn-danger btn-sm" onclick="setHapusUrl('hapusStokBahan.php?id_stok=<?= $b['id_stok'] ?>')">Hapus</a>
+                            <?php else: ?>
+                                <button class="btn btn-secondary btn-sm" disabled title="Sedang dipakai di resep">Terpakai</button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
 
-        <!-- Modal Konfirmasi Hapus -->
+        <!-- Modal Konfirmasi Hapus (hanya 1, di luar loop) -->
         <div class="modal fade" id="modalHapus" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
@@ -106,13 +114,14 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok $sort
                 </div>
             </div>
         </div>
+    </div>
 
-        <script>
-            function setHapusUrl(url) {
-                document.getElementById('btnYaHapus').href = url;
-                new bootstrap.Modal(document.getElementById('modalHapus')).show();
-            }
-        </script>
+    <script>
+        function setHapusUrl(url) {
+            document.getElementById('btnYaHapus').href = url;
+            new bootstrap.Modal(document.getElementById('modalHapus')).show();
+        }
+    </script>
 </body>
 
 </html>
