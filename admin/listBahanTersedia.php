@@ -45,7 +45,6 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok $sort
             </a>
         </div>
 
-        <!-- tombol navigasi pelanggan dan pesanan -->
         <div class="btn-nav card row g-0">
             <div class="sort col-auto">
                 <a href="?sort=<?= $next_sort ?>" style="color: #4A4459; text-decoration: none; font-weight: 600;"><?= ($sort == 'asc') ? '' : '' ?>
@@ -74,7 +73,6 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok $sort
             <p class="text-center mt-5">Belum ada data stok bahan baku yang ditambahkan</p>
         <?php else: ?>
             <?php foreach ($bahan_tersedia as $b):
-                // Cek apakah stok sedang dipakai
                 $cek_pakai = query("SELECT COUNT(*) as total FROM bahan_baku WHERE fk_bahan_stok = {$b['id_stok']}")[0]['total'];
                 $bisa_hapus = $cek_pakai == 0;
             ?>
@@ -99,8 +97,6 @@ $bahan_tersedia = query("SELECT * FROM stok_bahan ORDER BY nama_bahan_stok $sort
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
-
-        <!-- Modal Konfirmasi Hapus (hanya 1, di luar loop) -->
         <div class="modal fade" id="modalHapus" tabindex="-1">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
