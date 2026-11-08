@@ -1,0 +1,18 @@
+# Abaikan folder hasil testing atau tools tertentu
+/zap-report/
+/testing-output/
+/tests/
+*.log
+
+# Abaikan file temporary atau cache
+*.tmp
+*.cache
+.DS_Store
+
+# Abaikan folder dependency (kalau ada)
+/vendor/
+/node_modules/
+
+# Abaikan file konfigurasi lokal (kalau ada)
+.env
+config.local.php

@@ -24,7 +24,10 @@ $sort = isset($_GET['sort']) ? $_GET['sort'] : 'asc';
 $next_sort = ($sort == 'asc') ? 'desc' : 'asc';
 $sort_safe = ($sort === 'desc') ? 'DESC' : 'ASC';
 
-$pesanan = query("SELECT 
+// Tangkap keyword dari URL (jika ada)
+$keyword = isset($_GET['cari']) ? $_GET['cari'] : '';
+
+$query_pesanan = "SELECT 
         p.*,
         c.nama_pelanggan,
         mv.takaran,
@@ -33,8 +36,16 @@ $pesanan = query("SELECT
     FROM pesanan p
     LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
     LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    ORDER BY p.tanggal_pesan $sort_safe");
+    LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu";
+
+// Kalau ada keyword, tambahkan WHERE
+if ($keyword != '') {
+    $query_pesanan .= " WHERE c.nama_pelanggan LIKE '%$keyword%' ";
+}
+
+$query_pesanan .= " ORDER BY p.tanggal_pesan $sort_safe";
+
+$pesanan = query($query_pesanan);
 ?>
 
 <!DOCTYPE html>
@@ -107,7 +118,7 @@ $pesanan = query("SELECT
 
                             <!-- Gambar -->
                             <div class="order-img col">
-                                <img src="<?= $row['gambar_menu'] ?>" class="" alt="...">
+                                <img src="../img/<?= $row['gambar_menu'] ?>" class="" alt="...">
                             </div>
                         </div>
                     </div>

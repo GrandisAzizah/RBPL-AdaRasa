@@ -1,7 +1,23 @@
 <?php
 // ini dibuat biar nanti di setiap menu gak perlu buat koneksi lagi dan tinggal panggil saja function nya
 // koneksi ke database ("namahost", "username", "password", "nama_database")
-$conn = mysqli_connect("localhost", "root", "", "adarasa");
+// $conn = mysqli_connect(
+//     "sql110.infinityfree.com",
+//     "if0_41989402",
+//     "O91jQP0TwP",
+//     "if0_41989402_adarasa"
+// );
+require_once __DIR__ . '/config.php';
+
+$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+$GLOBALS['conn'] = $conn;
+
+// $conn = mysqli_connect(
+//     "localhost",
+//     "root",
+//     "",
+//     "adarasa"
+// );
 
 // function query
 function query($query)
@@ -144,8 +160,9 @@ function upload()
     $tmpName = $_FILES['gambar-menu']['tmp_name'];
 
     // cek apakah ada gambar yang diupload
-    if ($error == 4) { // 4: tidak ada file yang diunggah
-        return ['status' => 'error', 'pesan' => 'Silakan unggah gambar terlebih dahulu.'];
+    if ($error == 4) {
+        echo "<script>alert('Silakan unggah gambar terlebih dahulu.');</script>";
+        return false;
     }
 
     // cek apakah yang diunggah gambar atau bukan agar user hanya unggah gambar
@@ -173,9 +190,9 @@ function upload()
     $namaFileBaru .= '.' . $ekstensiGambar;
 
     // masukkan ke direktori
-    move_uploaded_file($tmpName, '../img/' . $namaFileBaru);
+    move_uploaded_file($tmpName, __DIR__ . '/img/' . $namaFileBaru);
 
-    return '/RBPL-AdaRasa/img/' . $namaFileBaru;
+    return $namaFileBaru;
 }
 
 function hapusMenu($id_menu)
@@ -222,9 +239,9 @@ function editMenu($data)
 
     $gambar_menu = $data["gambarLama"];
     $uploadGambarBaru = false;
-    if ($_FILES['gambar-menu']['error'] !== 4) {
+    if (isset($_FILES['gambar-menu']) && $_FILES['gambar-menu']['error'] === UPLOAD_ERR_OK) {
         $gambar_baru = upload();
-        if ($gambar_baru) {
+        if (is_string($gambar_baru) && $gambar_baru !== '') {
             $gambar_menu = $gambar_baru;
             $uploadGambarBaru = true;
         } else {
@@ -232,8 +249,8 @@ function editMenu($data)
         }
     }
 
-    if ($uploadGambarBaru) {
-        $pathGambarLama = '../img/' . basename($data["gambarLama"]);
+    if ($uploadGambarBaru && mysqli_affected_rows($conn) >= 0) {
+        $pathGambarLama = __DIR__ . '/img/' . basename($data["gambarLama"]);
         if (file_exists($pathGambarLama)) {
             unlink($pathGambarLama);
         }
@@ -313,26 +330,6 @@ function tambahBahanBaku($data)
 
     return $berhasil;
 }
-
-// function editBahan($data)
-// {
-//     global $conn;
-//     $id_bahan = $data["id_bahan"];
-//     $nama_bahan = htmlspecialchars($data['nama_bahan']);
-//     $jumlah_default = parseFraksi($data['jumlah_default']);
-//     $satuan = htmlspecialchars($data['satuan']);
-//     $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
-
-//     $query = "UPDATE bahan_baku SET
-//                 nama_bahan = '$nama_bahan',
-//                 jumlah_default = '$jumlah_default',
-//                 satuan = '$satuan',
-//                 fk_varian_bahan = $fk_varian_bahan
-//               WHERE id_bahan = $id_bahan";
-
-//     mysqli_query($conn, $query);
-//     return mysqli_affected_rows($conn);
-// }
 
 function editBahan($data)
 {
@@ -665,9 +662,9 @@ function upload_profil()
     $namaFileBaru = uniqid();
     $namaFileBaru .= '.' . $ekstensiGambar;
 
-    move_uploaded_file($tmpName, '../img/' . $namaFileBaru);
+    move_uploaded_file($tmpName, __DIR__ . '/img/' . $namaFileBaru);
 
-    return '/RBPL-AdaRasa/img/' . $namaFileBaru;
+    return $namaFileBaru;
 }
 
 function tambahPelanggan($data)
@@ -782,15 +779,6 @@ function inputStokBahan($data)
     return mysqli_affected_rows($conn);
 }
 
-// function hapusStokBahan($id_stok)
-// {
-//     global $conn;
-
-//     $id_stok = (int)$id_stok;
-//     mysqli_query($conn, "DELETE FROM stok_bahan WHERE id_stok = $id_stok");
-//     return mysqli_affected_rows($conn);
-// }
-
 function hapusStokBahan($id_stok)
 {
     global $conn;
@@ -852,10 +840,10 @@ function upload_foto_profil()
     $namaFileBaru = uniqid() . '.' . $ekstensiGambar;
 
     // Pindahkan file
-    move_uploaded_file($tmpName, '../img/' . $namaFileBaru);
+    move_uploaded_file($tmpName, __DIR__ . '/img/' . $namaFileBaru);
 
     // Return path lengkap
-    return '/RBPL-AdaRasa/img/' . $namaFileBaru;
+    return $namaFileBaru;
 }
 
 function editProfil($data, $username_lama)
@@ -955,4 +943,112 @@ function tanggal_indonesia($tanggal)
     ];
 
     return $hari_indonesia[$hari] . ', ' . $tanggal_num . ' ' . $bulan_indonesia[$bulan] . ' ' . $tahun;
+}
+
+function updateStatusPesanan($id_pesanan, $status_baru)
+{
+    global $conn;
+
+    $status_valid = ['Diterima', 'Diproses', 'Selesai', 'Diantar'];
+
+    if ($id_pesanan <= 0 || !in_array($status_baru, $status_valid)) {
+        return ['success' => false, 'message' => 'Parameter tidak valid'];
+    }
+
+    // Update status_pemesanan
+    $query = "UPDATE pesanan SET status_pemesanan = '$status_baru' WHERE id_pesanan = $id_pesanan";
+    $hasil = mysqli_query($conn, $query);
+
+    if (!$hasil) {
+        return ['success' => false, 'message' => 'Gagal update database'];
+    }
+
+    // Cek metode pengantaran ketika status Selesai
+    if ($status_baru == 'Selesai') {
+        $cek = query("SELECT metode_pengantaran FROM pesanan WHERE id_pesanan = $id_pesanan");
+        $metode = $cek[0]['metode_pengantaran'] ?? '';
+
+        if ($metode == 'Kurir Catering') {
+            mysqli_query($conn, "UPDATE pesanan SET status_pengantaran = 'Diterima' WHERE id_pesanan = $id_pesanan");
+        } else {
+            mysqli_query($conn, "UPDATE pesanan SET status_pengantaran = 'Selesai' WHERE id_pesanan = $id_pesanan");
+        }
+    }
+
+    return ['success' => true, 'message' => 'Status berhasil diupdate'];
+}
+
+// functions.php - tambahkan function ini
+function updateStatusPengantaran($id_pesanan, $status_baru)
+{
+    global $conn;
+
+    $status_valid = ['Diterima', 'Dalam Proses', 'Sedang Diantar', 'Selesai'];
+
+    if ($id_pesanan <= 0 || !in_array($status_baru, $status_valid)) {
+        return ['success' => false, 'message' => 'Invalid parameters'];
+    }
+
+    $query = "UPDATE pesanan SET status_pengantaran = '$status_baru' WHERE id_pesanan = $id_pesanan";
+    $hasil = mysqli_query($conn, $query);
+
+    if ($hasil) {
+        return ['success' => true];
+    } else {
+        return ['success' => false, 'message' => 'Database error: ' . mysqli_error($conn)];
+    }
+}
+
+// Untuk testing (tanpa upload gambar)
+function tambahMenuTest($data, $skip_upload = false)
+{
+    global $conn;
+
+    $nama_menu = htmlspecialchars($data["nama-menu"]);
+    $harga_menu_clean = preg_replace('/[^0-9]/', '', $data["harga-menu"]);
+    $harga_menu = intval($harga_menu_clean);
+    $kategori = htmlspecialchars($data["kategori"]);
+
+    // Skip upload untuk testing
+    if ($skip_upload) {
+        $gambar_menu = 'test.jpg';
+    } else {
+        $gambar_menu = upload();
+        if (!$gambar_menu) {
+            return false;
+        }
+    }
+
+    $query = "INSERT INTO menu (nama_menu, harga_menu, gambar_menu, kategori) 
+              VALUES ('$nama_menu', '$harga_menu', '$gambar_menu', '$kategori')";
+    mysqli_query($conn, $query);
+    $id_menu = mysqli_insert_id($conn);
+
+    // Insert varian
+    if (isset($data['takaran']) && is_array($data['takaran'])) {
+        for ($i = 0; $i < count($data['takaran']); $i++) {
+            $takaran = trim($data['takaran'][$i]);
+            $harga_tambahan_clean = preg_replace('/[^0-9]/', '', $data['harga_tambahan'][$i] ?? '0');
+            $harga_tambahan = intval($harga_tambahan_clean);
+
+            if (!empty($takaran)) {
+                $queryVarian = "INSERT INTO menu_varian (fk_menu_varian, takaran, harga_varian) 
+                                VALUES ('$id_menu', '$takaran', '$harga_tambahan')";
+                mysqli_query($conn, $queryVarian);
+            }
+        }
+    }
+
+    return mysqli_affected_rows($conn);
+}
+
+function hapusBahanTest($id_bahan)
+{
+    global $conn;
+
+    // Single id
+    $ids = (int)$id_bahan;
+
+    mysqli_query($conn, "DELETE FROM bahan_baku WHERE id_bahan IN ($ids)");
+    return mysqli_affected_rows($conn);
 }

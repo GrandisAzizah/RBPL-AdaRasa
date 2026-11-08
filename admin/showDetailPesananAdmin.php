@@ -76,7 +76,7 @@ $row = $pesanan[0]; // Ambil data pertama
                     <div class="col">
                         <div class="card-body">
                             <div style="display: flex; justify-content:center;">
-                                <img src="<?= $row['gambar_menu'] ?>" alt="" style="width: 200px; height: 200px;">
+                                <img src="../img/<?= $row['gambar_menu'] ?>" alt="" style="width: 200px; height: 200px;">
                             </div>
                             <p class="card-text mt-4 mb-3"><strong>Menu dipesan:</strong> <br><?= $row['nama_menu'] ?></p>
                             <p class="card-text mb-3"><strong>Jumlah pesan:</strong> <br><?= $row['jumlah'] ?> porsi</p>

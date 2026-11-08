@@ -77,7 +77,7 @@ $user = query("SELECT * FROM user WHERE username = '$username'")[0];
         <div class="row g-0">
             <!-- Gambar -->
             <div class="col-auto p-3 ms-3">
-                <img src="<?= $user['foto_profil_user'] ?>" style="width: 68px; height:68px; radius:50px;object-fit: cover; border-radius: 50%;">
+                <img src="../img/<?= $user['foto_profil_user'] ?>" style="width: 68px; height:68px; radius:50px;object-fit: cover; border-radius: 50%;">
             </div>
 
             <div class="col mb-3 mt-3">

@@ -57,7 +57,7 @@ ORDER BY m.nama_menu ASC");
                             <!-- Gambar -->
                             <a href=" showBahan.php?id_menu=<?= $row['id_menu'] ?>" style="text-decoration:none; color:inherit; display:contents;">
                                 <div class="col-auto">
-                                    <img src="<?= $row['gambar_menu'] ?>" class="menu-img" alt="...">
+                                    <img src="../img/<?= $row['gambar_menu'] ?>" class="menu-img" alt="...">
                                 </div>
                                 <!-- Isi -->
                                 <div class="col">

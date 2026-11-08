@@ -86,7 +86,7 @@ $pelanggan = query("SELECT * FROM customer ORDER BY nama_pelanggan $sort");
 
                             <!-- Gambar -->
                             <div class="order-img col-auto" style="padding: 10px;">
-                                <img src="<?= $row['profil_foto'] ?>" class="" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
+                                <img src="../img/<?= $row['profil_foto'] ?>" class="" alt="" style="width: 40px; height: 40px; object-fit: cover; border-radius: 50%;">
                             </div>
                         </div>
                     </a>

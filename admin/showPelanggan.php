@@ -47,7 +47,7 @@ $nama_pelanggan = $pelanggan[0]['nama_pelanggan'];
                     <div class="col">
                         <div class="card-body">
                             <div style="display: flex; justify-content:center;">
-                                <img src="<?= $row['profil_foto'] ?>" alt="" style="width: 200px; height: 200px;">
+                                <img src="../img/<?= $row['profil_foto'] ?>" alt="" style="width: 200px; height: 200px;">
                             </div>
                             <p class="card-text mt-4">Nama Pelanggan: <?= $row['nama_pelanggan'] ?></p>
                             <p class="card-text">Alamat: <?= $row['alamat'] ?></p>

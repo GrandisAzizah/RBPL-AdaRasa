@@ -27,7 +27,7 @@ if (isset($_SESSION["login"])) {
     } else if ($_SESSION['role'] == 'tim dapur') {
         header("location:dapur/pesananDapurDiterima.php");
     } else if ($_SESSION['role'] == 'tim pengantaran') {
-        header("location:pengantaran\pengantaranDiterima.php");
+        header("location:pengantaran/pengantaranDiterima.php");
     }
 }
 
@@ -50,11 +50,11 @@ if (isset($_POST["login"])) {
                 $_SESSION['username'] = $row['username']; // pastiin session username tersimpan saat login
 
                 if ($row['role'] == 'admin') {
-                    header("Location: /RBPL-AdaRasa/admin/berandaAdmin.php");
+                    header("Location: admin/berandaAdmin.php");
                 } else if ($row['role'] == 'tim dapur') {
-                    header("Location: /RBPL-AdaRasa/dapur/pesananDapurDiterima.php");
+                    header("Location: dapur/pesananDapurDiterima.php");
                 } else if ($row['role'] == 'tim pengantaran') {
-                    header("Location: /RBPL-AdaRasa/pengantaran/pengantaranDiterima.php");
+                    header("Location: pengantaran/pengantaranDiterima.php");
                 }
                 exit;
             }

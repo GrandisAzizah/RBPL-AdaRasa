@@ -164,7 +164,7 @@ $tipe = 'info';
                             <div class="row g-0">
                                 <!-- Gambar -->
                                 <div class="col-auto">
-                                    <img src="<?= $p['gambar_menu'] ?>" class="order-img" alt="...">
+                                    <img src="../img/<?= $p['gambar_menu'] ?>" class="order-img" alt="...">
                                 </div>
 
                                 <!-- Detail -->
