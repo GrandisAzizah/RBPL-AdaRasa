@@ -15,8 +15,8 @@ $limit = ($show_all == 'true') ? 999999 : 5;
 $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
 m.nama_menu, m.gambar_menu FROM pesanan p 
 LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+LEFT JOIN menu m ON p.fk_menu = m.id_menu
 LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
 WHERE p.status_pemesanan = 'Diterima'
 ORDER BY p.tanggal_pesan DESC
 LIMIT $limit");
@@ -33,8 +33,8 @@ $bahan_perlu_beli = query("SELECT * FROM (
     FROM detail_pesanan_bahan dpb
     JOIN bahan_baku bb ON dpb.fk_bahan_detail = bb.id_bahan
     JOIN pesanan p ON dpb.fk_detail_pesanan = p.id_pesanan
-    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    JOIN menu m ON mv.fk_menu_varian = m.id_menu
+    LEFT JOIN menu m ON p.fk_menu = m.id_menu  /* <--- AMBIL MENU DARI PESANAN */
+    LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
     JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
     LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
     GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan, m.nama_menu, c.nama_pelanggan, sb.stok_tersedia
@@ -230,7 +230,7 @@ $tipe = 'info';
 
     <script>
         function getCardElement(checkbox) {
-            return checkbox.closest('.card-bahan');
+            return checkbox.closest('.bahan-item');
         }
 
         document.querySelectorAll('.checkbox-bahan').forEach(cb => {

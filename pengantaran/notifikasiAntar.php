@@ -10,16 +10,14 @@ require '../functions.php';
 
 $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
     m.nama_menu, m.gambar_menu,
-    MIN(dp.packing) AS packing
+    (SELECT packing FROM detail_pesanan_bahan WHERE fk_detail_pesanan = p.id_pesanan LIMIT 1) AS packing
     FROM pesanan p 
     LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+    LEFT JOIN menu m ON p.fk_menu = m.id_menu
     LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
-    LEFT JOIN detail_pesanan_bahan dp ON dp.fk_detail_pesanan = p.id_pesanan
     WHERE p.status_pengantaran = 'Diterima'
     AND p.status_pemesanan = 'Diantar'
     AND p.metode_pengantaran = 'Kurir Catering'
-    GROUP BY p.id_pesanan
     ORDER BY p.tanggal_pesan ASC
 ");
 

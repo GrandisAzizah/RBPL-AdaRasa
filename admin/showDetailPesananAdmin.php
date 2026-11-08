@@ -24,8 +24,8 @@ $pesanan = query("SELECT
     MIN(dp.packing) as packing,
     GROUP_CONCAT(bb.nama_bahan, ' ', ROUND(dp.jumlah_dipakai, 2), ' ', bb.satuan SEPARATOR ', ') as bahan_baku
 FROM pesanan p
-JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-JOIN menu m ON mv.fk_menu_varian = m.id_menu
+LEFT JOIN menu m ON p.fk_menu = m.id_menu
+LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
 JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
 LEFT JOIN detail_pesanan_bahan dp ON dp.fk_detail_pesanan = p.id_pesanan
 LEFT JOIN bahan_baku bb ON dp.fk_bahan_detail = bb.id_bahan

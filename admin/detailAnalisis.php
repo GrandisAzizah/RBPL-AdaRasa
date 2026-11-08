@@ -1,5 +1,8 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
+
 if (!isset($_SESSION["login"])) {
     header("location: login.php");
     exit;
@@ -8,99 +11,116 @@ if (!isset($_SESSION["login"])) {
 require '../functions.php';
 
 $periode = $_GET['periode'] ?? '1hari';
+$total_dibuat = 0;
+$ada_pesanan = false;
+$laris = null;
+$jarang = null;
+$data = [];
+$data_mingguan = [];
+$data_bulanan = [];
+$data_tahunan = [];
 
+// --- QUERY HARIAN ---
 if ($periode == '1hari') {
     $filter = "DATE(p.tanggal_pesan) = CURDATE()";
     $judul_periode = "Laporan Harian - " . tanggal_indonesia(date('Y-m-d'));
+
     $data = query("SELECT 
             m.nama_menu,
             mv.takaran,
             COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
             SUM(p.jumlah) as jumlah_porsi_dipesan
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE $filter
         GROUP BY m.id_menu, mv.id_varian
         ORDER BY jumlah_porsi_dipesan DESC");
 
-    $laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE $filter
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total DESC LIMIT 1")[0] ?? null;
+        ORDER BY total DESC LIMIT 1");
+    $laris = $res_laris[0] ?? null;
 
-    $jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE $filter
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total ASC LIMIT 1")[0] ?? null;
+        ORDER BY total ASC LIMIT 1");
+    $jarang = $res_jarang[0] ?? null;
 
-    $total_dibuat = query("SELECT COUNT(*) as total FROM pesanan p WHERE $filter")[0]['total'];
+    $res_total = query("SELECT COUNT(*) as total FROM pesanan p WHERE $filter");
+    $total_dibuat = $res_total[0]['total'] ?? 0;
     $ada_pesanan = $total_dibuat > 0;
+
+    // --- QUERY MINGGUAN ---
 } elseif ($periode == '1minggu') {
     $judul_periode = "Laporan Mingguan (4 Minggu Terakhir)";
-    $weeks = query("SELECT DISTINCT
-        week_num,
-        tgl_awal,
-        tgl_akhir
-    FROM (
+
+    // Menggunakan GROUP BY biasa agar kompatibel dengan semua versi MySQL
+    $weeks = query("
         SELECT 
             WEEK(tanggal_pesan, 1) as week_num,
-            MIN(DATE(tanggal_pesan)) OVER (PARTITION BY WEEK(tanggal_pesan, 1)) as tgl_awal,
-            MAX(DATE(tanggal_pesan)) OVER (PARTITION BY WEEK(tanggal_pesan, 1)) as tgl_akhir
+            MIN(DATE(tanggal_pesan)) as tgl_awal,
+            MAX(DATE(tanggal_pesan)) as tgl_akhir
         FROM pesanan
         WHERE tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-    ) as sub
-");
+        GROUP BY WEEK(tanggal_pesan, 1)
+        ORDER BY week_num DESC
+    ");
 
-    $data_mingguan = [];
     $week_count = count($weeks);
     foreach ($weeks as $index => $week) {
-        $data = query("SELECT 
+        $data_minggu_ini = query("SELECT 
                 m.nama_menu,
                 mv.takaran,
                 COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
                 SUM(p.jumlah) as jumlah_porsi_dipesan
             FROM pesanan p
-            JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-            JOIN menu m ON mv.fk_menu_varian = m.id_menu
+            LEFT JOIN menu m ON p.fk_menu = m.id_menu
+            LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
             WHERE WEEK(p.tanggal_pesan, 1) = {$week['week_num']}
             AND p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
             GROUP BY m.id_menu, mv.id_varian
-            ORDER BY jumlah_porsi_dipesan DESC
-        ");
+            ORDER BY jumlah_porsi_dipesan DESC");
 
         $data_mingguan[] = [
             'minggu_ke' => "Minggu ke-" . ($week_count - $index),
             'tgl_awal' => $week['tgl_awal'],
             'tgl_akhir' => $week['tgl_akhir'],
-            'data' => $data
+            'data' => $data_minggu_ini
         ];
     }
 
-    $laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total DESC LIMIT 1")[0] ?? null;
+        ORDER BY total DESC LIMIT 1");
+    $laris = $res_laris[0] ?? null;
 
-    $jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total ASC LIMIT 1")[0] ?? null;
+        ORDER BY total ASC LIMIT 1");
+    $jarang = $res_jarang[0] ?? null;
 
-    $total_dibuat = query("SELECT COUNT(*) as total FROM pesanan p WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)")[0]['total'];
+    $res_total = query("SELECT COUNT(*) as total FROM pesanan p WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)");
+    $total_dibuat = $res_total[0]['total'] ?? 0;
     $ada_pesanan = $total_dibuat > 0;
+
+    // --- QUERY BULANAN ---
 } elseif ($periode == '1bulan') {
     $judul_periode = "Laporan Bulanan (12 Bulan Terakhir)";
 
@@ -118,6 +138,7 @@ if ($periode == '1hari') {
         'November' => 'November',
         'December' => 'Desember'
     ];
+
     $data_bulanan = query("SELECT 
             DATE_FORMAT(p.tanggal_pesan, '%Y-%m') as bulan,
             m.nama_menu,
@@ -125,31 +146,35 @@ if ($periode == '1hari') {
             COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
             SUM(p.jumlah) as jumlah_porsi_dipesan
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
         GROUP BY DATE_FORMAT(p.tanggal_pesan, '%Y-%m'), m.id_menu, mv.id_varian
-        ORDER BY bulan DESC, jumlah_porsi_dipesan DESC
-    ");
+        ORDER BY bulan DESC, jumlah_porsi_dipesan DESC");
 
-    $laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total DESC LIMIT 1")[0] ?? null;
+        ORDER BY total DESC LIMIT 1");
+    $laris = $res_laris[0] ?? null;
 
-    $jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total ASC LIMIT 1")[0] ?? null;
+        ORDER BY total ASC LIMIT 1");
+    $jarang = $res_jarang[0] ?? null;
 
-    $total_dibuat = query("SELECT COUNT(*) as total FROM pesanan p WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)")[0]['total'];
+    $res_total = query("SELECT COUNT(*) as total FROM pesanan p WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)");
+    $total_dibuat = $res_total[0]['total'] ?? 0;
     $ada_pesanan = $total_dibuat > 0;
+
+    // --- QUERY TAHUNAN ---
 } else {
     $judul_periode = "Laporan Tahunan (5 tahun terakhir)";
 
@@ -160,30 +185,32 @@ if ($periode == '1hari') {
             COUNT(DISTINCT p.id_pesanan) as frekuensi_dipesan,
             SUM(p.jumlah) as jumlah_porsi_dipesan
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
         GROUP BY YEAR(p.tanggal_pesan), m.id_menu, mv.id_varian
-        ORDER BY tahun DESC, jumlah_porsi_dipesan DESC
-    ");
+        ORDER BY tahun DESC, jumlah_porsi_dipesan DESC");
 
-    $laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_laris = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total DESC LIMIT 1")[0] ?? null;
+        ORDER BY total DESC LIMIT 1");
+    $laris = $res_laris[0] ?? null;
 
-    $jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
+    $res_jarang = query("SELECT m.nama_menu, mv.takaran, SUM(p.jumlah) as total, COUNT(DISTINCT p.id_pesanan) as frekuensi
         FROM pesanan p
-        JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu m ON p.fk_menu = m.id_menu
+        LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
         WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)
         GROUP BY m.id_menu, mv.id_varian
-        ORDER BY total ASC LIMIT 1")[0] ?? null;
+        ORDER BY total ASC LIMIT 1");
+    $jarang = $res_jarang[0] ?? null;
 
-    $total_dibuat = query("SELECT COUNT(*) as total FROM pesanan p WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)")[0]['total'];
+    $res_total = query("SELECT COUNT(*) as total FROM pesanan p WHERE p.tanggal_pesan >= DATE_SUB(CURDATE(), INTERVAL 5 YEAR)");
+    $total_dibuat = $res_total[0]['total'] ?? 0;
     $ada_pesanan = $total_dibuat > 0;
 }
 ?>
@@ -257,14 +284,14 @@ if ($periode == '1hari') {
                     <div class="periode-group">
                         <h6 class="mb-2">Rangkuman</h6>
                         <p><strong>Menu paling laris:</strong>
-                            <?php if (isset($laris) && $laris): ?>
-                                <?= $laris['nama_menu'] . ' (' . $laris['takaran'] . ') - ' . $laris['frekuensi'] . ' kali dipesan (' . $laris['total'] . ' porsi)' ?>
+                            <?php if ($laris): ?>
+                                <?= $laris['nama_menu'] . ' (' . ($laris['takaran'] ?? '-') . ') - ' . $laris['frekuensi'] . ' kali dipesan (' . $laris['total'] . ' porsi)' ?>
                             <?php else: ?>
                                 -
                             <?php endif; ?>
                         </p>
                         <p><strong>Menu jarang dipesan:</strong>
-                            <?php if (isset($jarang) && $jarang): ?>
+                            <?php if ($jarang): ?>
                                 <?= $jarang['nama_menu'] . ' (' . ($jarang['takaran'] ?? '-') . ') - ' . $jarang['frekuensi'] . ' kali dipesan (' . $jarang['total'] . ' porsi)' ?>
                             <?php else: ?>
                                 -
@@ -277,7 +304,6 @@ if ($periode == '1hari') {
             <button onclick="window.print()" class="btn-download mb-3">Cetak/Simpan PDF</button>
 
             <?php if ($periode == '1hari'): ?>
-                <!-- HARIAN -->
                 <h6 class="mt-4">Detail Menu</h6>
                 <table class="table table-bordered">
                     <thead class="table-light">
@@ -291,7 +317,7 @@ if ($periode == '1hari') {
                     <tbody>
                         <?php foreach ($data as $row): ?>
                             <tr>
-                                <td><?= $row['nama_menu'] ?></td>
+                                <td><?= $row['nama_menu'] ?? '-' ?></td>
                                 <td><?= $row['takaran'] ?? '-' ?></td>
                                 <td><?= $row['jumlah_porsi_dipesan'] ?></td>
                                 <td><?= $row['frekuensi_dipesan'] ?> kali</td>
@@ -300,10 +326,8 @@ if ($periode == '1hari') {
                     </tbody>
                 </table>
 
-                <?php
-            elseif ($periode == '1minggu'):
-                foreach ($data_mingguan as $week_data):
-                ?>
+            <?php elseif ($periode == '1minggu'): ?>
+                <?php foreach ($data_mingguan as $week_data): ?>
                     <div class="periode-group">
                         <h6 class="mb-2"><?= $week_data['minggu_ke'] ?> (<?= tanggal_indonesia($week_data['tgl_awal']) ?> - <?= tanggal_indonesia($week_data['tgl_akhir']) ?>)</h6>
                     </div>
@@ -319,7 +343,7 @@ if ($periode == '1hari') {
                         <tbody>
                             <?php foreach ($week_data['data'] as $row): ?>
                                 <tr>
-                                    <td><?= $row['nama_menu'] ?></td>
+                                    <td><?= $row['nama_menu'] ?? '-' ?></td>
                                     <td><?= $row['takaran'] ?? '-' ?></td>
                                     <td><?= $row['jumlah_porsi_dipesan'] ?></td>
                                     <td><?= $row['frekuensi_dipesan'] ?> kali</td>
@@ -327,10 +351,9 @@ if ($periode == '1hari') {
                             <?php endforeach; ?>
                         </tbody>
                     </table>
-                <?php
-                endforeach;
+                <?php endforeach; ?>
 
-            elseif ($periode == '1bulan'): ?>
+            <?php elseif ($periode == '1bulan'): ?>
                 <?php
                 $current_bulan = '';
                 foreach ($data_bulanan as $row):
@@ -338,7 +361,7 @@ if ($periode == '1hari') {
                     $bulan_num = substr($row['bulan'], 5, 2);
                     $bulan_name = '';
                     foreach ($bulan_indonesia as $eng => $ind) {
-                        if (date('F', mktime(0, 0, 0, $bulan_num, 1)) == $eng) {
+                        if (date('F', mktime(0, 0, 0, (int)$bulan_num, 1)) == $eng) {
                             $bulan_name = $ind;
                             break;
                         }
@@ -362,11 +385,10 @@ if ($periode == '1hari') {
                                 </tr>
                             </thead>
                             <tbody>
-                            <?php
-                            $current_bulan = $row['bulan'];
+                            <?php $current_bulan = $row['bulan'];
                         endif; ?>
                             <tr>
-                                <td><?= $row['nama_menu'] ?></td>
+                                <td><?= $row['nama_menu'] ?? '-' ?></td>
                                 <td><?= $row['takaran'] ?? '-' ?></td>
                                 <td><?= $row['jumlah_porsi_dipesan'] ?></td>
                                 <td><?= $row['frekuensi_dipesan'] ?> kali</td>
@@ -397,11 +419,10 @@ if ($periode == '1hari') {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    <?php
-                                    $current_tahun = $row['tahun'];
+                                    <?php $current_tahun = $row['tahun'];
                                 endif; ?>
                                     <tr>
-                                        <td><?= $row['nama_menu'] ?></td>
+                                        <td><?= $row['nama_menu'] ?? '-' ?></td>
                                         <td><?= $row['takaran'] ?? '-' ?></td>
                                         <td><?= $row['jumlah_porsi_dipesan'] ?></td>
                                         <td><?= $row['frekuensi_dipesan'] ?> kali</td>

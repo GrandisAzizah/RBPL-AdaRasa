@@ -15,9 +15,8 @@ $id_pesanan = (int)$_GET['id_pesanan'];
 $pelanggan = query("SELECT * FROM customer");
 $menu = query("SELECT * FROM menu");
 $varian = query("SELECT * FROM menu_varian");
-$result = query("SELECT p.*, dp.packing, mv.fk_menu_varian as fk_menu 
+$result = query("SELECT p.*, dp.packing 
     FROM pesanan p 
-    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
     LEFT JOIN detail_pesanan_bahan dp ON p.id_pesanan = dp.fk_detail_pesanan
     WHERE p.id_pesanan = $id_pesanan");
 
@@ -178,10 +177,16 @@ if (isset($_POST["submit"])) {
 
         <div class="container">
             <form id="form-pesanan" method="POST">
+                <!-- ID Pesanan (Hidden) -->
                 <input type="hidden" name="id_pesanan" value="<?= $pesanan['id_pesanan'] ?>">
-                <!-- INPUT NAMA MENU -->
-                <label for="nama_pelanggan">Nama Pelanggan</label>
-                <select name="nama_pelanggan" id="nama_pelanggan" required>
+
+                <!-- Data yang Dikunci -->
+                <input type="hidden" name="nama_pelanggan" value="<?= $pesanan['fk_pesanan_customer'] ?>">
+                <input type="hidden" name="fk_menu_pilih" value="<?= $id_menu ?>">
+                <input type="hidden" name="jumlah" value="<?= $jumlah ?>">
+
+                <label for="nama_pelanggan_display">Nama Pelanggan</label>
+                <select id="nama_pelanggan_display" disabled>
                     <?php foreach ($daftar_pelanggan as $pelanggan): ?>
                         <option value="<?= $pelanggan['id_pelanggan'] ?>" <?= $pesanan['fk_pesanan_customer'] == $pelanggan['id_pelanggan'] ? 'selected' : '' ?>>
                             <?= $pelanggan['nama_pelanggan'] ?>
@@ -189,29 +194,40 @@ if (isset($_POST["submit"])) {
                     <?php endforeach; ?>
                 </select>
 
-                <!-- INPUT PESANAN -->
-                <!-- INPUT PESANAN - ganti ini -->
-                <label for="nama_pesanan">Pesanan</label>
-                <select name="fk_menu_pilih" id="nama_pesanan" required>
-                    <?php foreach ($daftar_menu as $m): ?>
-                        <option value="<?= $m['id_menu'] ?>" <?= $m['id_menu'] == $id_menu ? 'selected' : '' ?>>
-                            <?= $m['nama_menu'] ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <input type="hidden" name="fk_menu" value="<?= $id_menu ?>">
+                <label for="nama_pesanan_display">Menu</label>
+                <?php
+                // Cari nama menu yang sesuai dengan id_menu
+                $nama_menu_terpilih = '';
+                foreach ($daftar_menu as $m) {
+                    if ($m['id_menu'] == $id_menu) {
+                        $nama_menu_terpilih = $m['nama_menu'];
+                        break;
+                    }
+                }
+                ?>
+                <!-- Tampilkan sebagai text box yang tidak bisa diedit -->
+                <input type="text" id="nama_pesanan_display" value="<?= $nama_menu_terpilih ?>"
+                    readonly style="background-color: #e9ecef;">
 
-                <!-- INPUT JUMLAH -->
-                <label for="jumlah">Jumlah:<br></label>
-                <input type="text" name="jumlah" value="<?= $jumlah ?>" id="jumlah" min="0" max="100" step="1" required
-                    oninput="this.value = Math.floor(this.value); if(this.value < 0) this.value = 0; if(this.value > 500) this.value = 500;">
+                <label for="jumlah">Jumlah Porsi:</label>
+                <input type="number" name="jumlah" value="<?= $jumlah ?>"
+                    id="jumlah" min="1" max="500" step="1" required
+                    onblur="if(this.value === '' || parseInt(this.value) < 1) 
+                    { this.value = 1; } if(parseInt(this.value) > 500) 
+                    { this.value = 500; } updateBahan();"
+                    onkeyup="if(this.value !== '') updateBahan();">
 
+                <!-- Data yang Bisa Diedit -->
                 <label for="takaran">Takaran</label>
-                <select name="fk_pesanan_varian" id="takaran" required>
+                <select name="fk_pesanan_varian" id="takaran">
+                    <option value="">-- Tanpa Varian --</option>
                     <?php foreach ($daftar_varian as $v): ?>
-                        <option value="<?= $v['id_varian'] ?>" <?= $v['id_varian'] == $fk_varian ? 'selected' : '' ?>>
-                            <?= $v['takaran'] ?>
-                        </option>
+                        <!-- Pastikan hanya varian dari menu ini yang muncul -->
+                        <?php if ($v['fk_menu_varian'] == $id_menu): ?>
+                            <option value="<?= $v['id_varian'] ?>" <?= $v['id_varian'] == $fk_varian ? 'selected' : '' ?>>
+                                <?= $v['takaran'] ?>
+                            </option>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                 </select>
 
@@ -231,33 +247,18 @@ if (isset($_POST["submit"])) {
                     </div>
                 </div>
 
-                <label>Bahan yang Diperlukan</label>
-                <?php foreach ($bahan as $i => $b):
-                    $jumlah_bahan = $b['jumlah_default'] * $jumlah;
-                ?>
-                    <div class="bahan-item">
-                        <label for="bahan<?= $i ?>" class="bahan-label">
-                            <span class="bahan-nama"><?= $b['nama_bahan'] ?></span>
-                            <span
-                                class="bahan-jumlah"
-                                data-default="<?= $b['jumlah_default'] ?>"
-                                id="jumlah-bahan-<?= $i ?>">
-                                <?= $jumlah_bahan ?> <?= $b['satuan'] ?>
-                            </span>
-                        </label>
-                    </div>
-                <?php endforeach; ?>
-
                 <label for="metode_pengantaran">Metode Pengantaran</label>
                 <select name="metode_pengantaran" id="metode_pengantaran">
                     <option value="Kurir Catering" <?= $pesanan['metode_pengantaran'] == 'Kurir Catering' ? 'selected' : '' ?>>Kurir Catering</option>
                     <option value="Ojek Online" <?= $pesanan['metode_pengantaran'] == 'Ojek Online' ? 'selected' : '' ?>>Ojek Online</option>
                 </select><br>
+
                 <label>Tanggal Pengiriman</label>
                 <input type="datetime-local" name="tanggal_antar" value="<?= date('Y-m-d\TH:i', strtotime($pesanan['tanggal_antar'])) ?>">
 
                 <label for="catatan_khusus_pemesanan">Catatan</label>
                 <textarea name="catatan_khusus_pemesanan" maxlength="255"><?= $pesanan['catatan_khusus_pemesanan'] ?></textarea>
+
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="submit" name="submit" class="btn btn-outline-dark input-next">Save</button>
             </form>
@@ -270,33 +271,16 @@ if (isset($_POST["submit"])) {
 <script>
     let tomSelect; // taruh di luar
 
-    document.addEventListener('DOMContentLoaded', function() {
-        tomSelect = new TomSelect('#nama_pesanan', {
-            create: false,
-            sortField: 'text',
-            searchField: 'text',
-            placeholder: 'Pilih menu...',
-            allowEmptyOption: true,
-            onChange: function(value) {
-                updateTakaran(value);
-                updateBahan();
-            },
-            render: {
-                option: function(data, escape) {
-                    if (data.disabled) return null;
-                    return '<div>' + escape(data.text) + '</div>';
-                },
-                item: function(data, escape) {
-                    if (data.disabled) return null;
-                    return '<div>' + escape(data.text) + '</div>';
-                }
-            }
-        });
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     new TomSelect('#nama_pesanan_display', {
+    //         create: false,
+    //         sortField: 'text',
+    //         searchField: 'text',
+    //         placeholder: 'Pilih menu...',
+    //         allowEmptyOption: true
+    //     });
+    // });
 
-        // pindahin ke sini
-        const selectedMenu = <?= json_encode($id_menu) ?>;
-        tomSelect.setValue(selectedMenu);
-    });
 
     const selectedVarian = <?= json_encode($fk_varian) ?>;
 
@@ -361,21 +345,34 @@ if (isset($_POST["submit"])) {
     }
 
     function updateBahan() {
-        const jumlah = parseInt(document.getElementById('jumlah').value) || 0;
+        const inputJumlah = document.getElementById('jumlah');
+        // Kalau kosong, anggap 0 sementara waktu agar bahan tidak error
+        const jumlah = inputJumlah.value === '' ? 0 : (parseInt(inputJumlah.value) || 0);
 
         document.querySelectorAll('.bahan-jumlah').forEach(el => {
-            const defaultVal = parseFloat(el.dataset.default);
-            const satuan = el.textContent.split(' ').pop();
+            // Ambil nilai default dari atribut data-default
+            const defaultVal = parseFloat(el.dataset.default) || 0;
 
+            // Ambil satuan dari teks (misal "gram", "ml", dll)
+            // Kita ambil kata terakhir dari teks aslinya
+            const satuan = el.textContent.trim().split(' ').pop();
+
+            // Hitung total baru
             const total = defaultVal * jumlah;
 
+            // Tampilkan ke layar
             el.textContent = total + ' ' + satuan;
         });
     }
 
+    // Panggil saat pertama kali halaman dimuat
+    document.addEventListener('DOMContentLoaded', function() {
+        updateBahan();
+    });
+
     // Jalankan saat halaman load dan saat menu berubah
-    document.getElementById('nama_pesanan').addEventListener('change', function() {
-        updateTakaran(this.value);
+    document.addEventListener('DOMContentLoaded', function() {
+        updateBahan();
     });
 
     // Trigger saat pertama load

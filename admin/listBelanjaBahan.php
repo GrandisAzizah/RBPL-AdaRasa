@@ -73,8 +73,8 @@ $bahan_perlu_beli = query("
         FROM detail_pesanan_bahan dpb
         JOIN bahan_baku bb   ON dpb.fk_bahan_detail = bb.id_bahan
         JOIN pesanan p       ON dpb.fk_detail_pesanan = p.id_pesanan
-        JOIN menu_varian mv  ON p.fk_pesanan_varian = mv.id_varian
-        JOIN menu m          ON mv.fk_menu_varian = m.id_menu
+        LEFT JOIN menu_varian mv  ON p.fk_pesanan_varian = mv.id_varian
+        LEFT JOIN menu m          ON p.fk_menu = m.id_menu
         JOIN customer c     ON p.fk_pesanan_customer = c.id_pelanggan
         LEFT JOIN stok_bahan sb ON sb.nama_bahan_stok = bb.nama_bahan
         GROUP BY bb.id_bahan, bb.nama_bahan, bb.satuan,

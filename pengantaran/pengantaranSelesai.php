@@ -11,8 +11,8 @@ require '../alamat.php';
 $pesanan_terbaru = query("SELECT p.*, c.nama_pelanggan, mv.takaran,
 m.nama_menu, m.gambar_menu FROM pesanan p 
 LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
+LEFT JOIN menu m ON p.fk_menu = m.id_menu
 LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu
 WHERE (p.metode_pengantaran = 'Kurir Catering' AND p.status_pengantaran = 'Selesai' AND p.status_pemesanan = 'Diantar')
    OR (p.metode_pengantaran = 'Ojek Online' AND p.status_pemesanan = 'Diantar')
 ORDER BY p.tanggal_pesan ASC");
@@ -183,7 +183,7 @@ foreach ($pesanan_terbaru as $p) {
                             <div class="row g-0">
                                 <!-- Gambar -->
                                 <div class="col-auto">
-                                    <img src="<?= $p['gambar_menu'] ?>" class="card-img-top" alt="..." style="width: 100px; height: 100px; padding: 10px;">
+                                    <img src="../img/<?= $p['gambar_menu'] ?>" class="card-img-top" alt="..." style="width: 100px; height: 100px; padding: 10px;">
                                 </div>
 
                                 <!-- Nama Pemesan dan detail lainnya -->

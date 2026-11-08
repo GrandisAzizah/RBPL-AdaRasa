@@ -35,8 +35,8 @@ $query_pesanan = "SELECT
         m.gambar_menu
     FROM pesanan p
     LEFT JOIN customer c ON p.fk_pesanan_customer = c.id_pelanggan
-    LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    LEFT JOIN menu m ON mv.fk_menu_varian = m.id_menu";
+    LEFT JOIN menu m ON p.fk_menu = m.id_menu
+    LEFT JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian";
 
 // Kalau ada keyword, tambahkan WHERE
 if ($keyword != '') {

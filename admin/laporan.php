@@ -21,8 +21,7 @@ $penjualan_kategori = query("
         m.kategori,
         SUM(p.jumlah) as total_terjual
     FROM pesanan p
-    JOIN menu_varian mv ON p.fk_pesanan_varian = mv.id_varian
-    JOIN menu m ON mv.fk_menu_varian = m.id_menu
+    JOIN menu m ON p.fk_menu = m.id_menu
     GROUP BY m.kategori
 ");
 

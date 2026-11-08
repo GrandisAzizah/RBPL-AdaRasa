@@ -191,9 +191,35 @@ if (isset($_POST["submit"])) {
                 <label for="nama_bahan">Nama Bahan Baku <br></label>
                 <input type="text" name="nama_bahan" id="nama_bahan" value="<?= $bahan['nama_bahan'] ?>" maxlength="40" required><br><br>
 
-                <!-- INPUT HARGA -->
-                <label for="jumlah_default">Jumlah:<br></label>
-                <input type="number" name="jumlah_default" id="jumlah_default" value="<?= $bahan['jumlah_default'] ?>" min="0" max="999999" required><br><br>
+                <?php $punya_varian = !empty($varian); ?>
+
+                <?php if (!$punya_varian): ?>
+                    <!-- KALAU TIDAK ADA VARIAN: Tampilkan input jumlah biasa -->
+                    <label for="jumlah_default">Jumlah:<br></label>
+                    <input type="number" name="jumlah_default[]" id="jumlah_default" value="<?= $bahan['jumlah_default'] ?>" min="0" step="0.01" required><br><br>
+                    <input type="hidden" name="fk_varian_bahan[]" value="">
+                <?php else: ?>
+                    <!-- KALAU ADA VARIAN: Tampilkan input per varian -->
+                    <label>Jumlah per Varian</label>
+                    <div id="varian-container">
+                        <?php foreach ($varian as $v): ?>
+                            <?php
+                            // Cari data bahan di database yang cocok dengan varian ini
+                            $q_cek = query("SELECT jumlah_default FROM bahan_baku 
+                                                WHERE fk_menu_bahan = $id_menu 
+                                                AND nama_bahan = '{$bahan['nama_bahan']}' 
+                                                AND fk_varian_bahan = {$v['id_varian']}");
+                            // Jika sudah ada di database, pakai nilainya. Jika belum, kosongkan.
+                            $val_jumlah = isset($q_cek[0]) ? $q_cek[0]['jumlah_default'] : '';
+                            ?>
+                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <span style="flex:1; font-size:13px;"><?= $v['takaran'] ?></span>
+                                <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" value="<?= $val_jumlah ?>" required style="flex:1; margin:0;">
+                                <input type="hidden" name="fk_varian_bahan[]" value="<?= $v['id_varian'] ?>">
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
 
                 <!-- INPUT SATUAN -->
                 <label for="satuan">Satuan</label><br>
@@ -212,26 +238,6 @@ if (isset($_POST["submit"])) {
                     <option value="sendok makan" <?= $bahan['satuan'] == 'sendok makan' ? 'selected' : '' ?>>sendok makan</option>
                     <option value="sendok teh" <?= $bahan['satuan'] == 'sendok teh' ? 'selected' : '' ?>>sendok teh</option>
                 </select>
-
-                <label>Jumlah per Varian</label>
-                <div id="varian-container">
-                    <?php if (empty($varian)): ?>
-                        <!-- Kalau tidak ada varian, satu input saja -->
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                            <span style="flex:1; font-size:13px;">Semua varian</span>
-                            <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" required style="flex:1; margin:0;">
-                            <input type="hidden" name="fk_varian_bahan[]" value="">
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($varian as $v): ?>
-                            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-                                <span style="flex:1; font-size:13px;"><?= $v['takaran'] ?></span>
-                                <input type="number" name="jumlah_default[]" placeholder="Jumlah" min="0" step="0.01" style="flex:1; margin:0;">
-                                <input type="hidden" name="fk_varian_bahan[]" value="<?= $v['id_varian'] ?>">
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
 
                 <!-- SUBMIT BUTTON -->
                 <button type="submit" value="Kirim" name="submit" class="btn btn-dark mt-3">Kirim</button>

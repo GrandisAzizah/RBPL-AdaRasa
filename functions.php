@@ -334,30 +334,84 @@ function tambahBahanBaku($data)
 function editBahan($data)
 {
     global $conn;
-    $id_bahan = $data["id_bahan"];
+    $id_bahan_utama = (int)$data["id_bahan"]; // Ini id_bahan yang dilempar dari form
     $nama_bahan = htmlspecialchars($data['nama_bahan']);
     $satuan = htmlspecialchars($data['satuan']);
 
-    if (isset($data['jumlah_default']) && is_array($data['jumlah_default'])) {
-        $jumlah_default_raw = $data['jumlah_default'][0] ?? '0';
-        $fk_varian_bahan = isset($data['fk_varian_bahan'][0]) ? (int)$data['fk_varian_bahan'][0] : 'NULL';
-    } else {
-        $jumlah_default_raw = $data['jumlah_default'] ?? '0';
-        $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
+    // Ambil data menu dari id_bahan utama (untuk dapat fk_menu_bahan)
+    $q_utama = mysqli_query($conn, "SELECT fk_menu_bahan FROM bahan_baku WHERE id_bahan = $id_bahan_utama");
+    $menu = mysqli_fetch_assoc($q_utama);
+    $fk_menu = $menu['fk_menu_bahan'];
+
+    $jumlah_list = $data['jumlah_default'];
+    $varian_list = $data['fk_varian_bahan'];
+    $berhasil = 0;
+
+    // Looping setiap baris inputan
+    foreach ($jumlah_list as $i => $jumlah_raw) {
+        $jumlah = floatval($jumlah_raw); // Input number pakai titik (desimal)
+        $fk_varian = !empty($varian_list[$i]) ? (int)$varian_list[$i] : 'NULL';
+
+        // Cari id_bahan yang sesuai dengan varian ini
+        if ($fk_varian == 'NULL') {
+            // Kalau tidak ada varian, update baris utama
+            $cek = mysqli_query($conn, "SELECT id_bahan FROM bahan_baku WHERE id_bahan = $id_bahan_utama");
+        } else {
+            // Kalau ada varian, cari id_bahan yang menampung varian tersebut di menu ini
+            $cek = mysqli_query($conn, "SELECT id_bahan FROM bahan_baku WHERE fk_menu_bahan = $fk_menu AND nama_bahan = '$nama_bahan' AND fk_varian_bahan = $fk_varian");
+        }
+
+        $row = mysqli_fetch_assoc($cek);
+
+        // Kalau datanya sudah ada, UPDATE
+        if ($row) {
+            $id_update = $row['id_bahan'];
+            $query = "UPDATE bahan_baku SET
+                        nama_bahan = '$nama_bahan',
+                        jumlah_default = '$jumlah',
+                        satuan = '$satuan'
+                      WHERE id_bahan = $id_update";
+            mysqli_query($conn, $query);
+            $berhasil += mysqli_affected_rows($conn);
+        } else if ($fk_varian != 'NULL') {
+            // Kalau datanya belum ada (misal varian baru ditambahkan), INSERT
+            $query = "INSERT INTO bahan_baku (fk_menu_bahan, nama_bahan, jumlah_default, satuan, fk_varian_bahan) 
+                      VALUES ('$fk_menu', '$nama_bahan', '$jumlah', '$satuan', $fk_varian)";
+            mysqli_query($conn, $query);
+            $berhasil += mysqli_affected_rows($conn);
+        }
     }
 
-    $jumlah_default = parseFraksi($jumlah_default_raw);
-
-    $query = "UPDATE bahan_baku SET
-                nama_bahan = '$nama_bahan',
-                jumlah_default = '$jumlah_default',
-                satuan = '$satuan',
-                fk_varian_bahan = $fk_varian_bahan
-              WHERE id_bahan = $id_bahan";
-
-    mysqli_query($conn, $query);
-    return mysqli_affected_rows($conn);
+    return $berhasil;
 }
+
+// function editBahan($data)
+// {
+//     global $conn;
+//     $id_bahan = $data["id_bahan"];
+//     $nama_bahan = htmlspecialchars($data['nama_bahan']);
+//     $satuan = htmlspecialchars($data['satuan']);
+
+//     if (isset($data['jumlah_default']) && is_array($data['jumlah_default'])) {
+//         $jumlah_default_raw = $data['jumlah_default'][0] ?? '0';
+//         $fk_varian_bahan = isset($data['fk_varian_bahan'][0]) ? (int)$data['fk_varian_bahan'][0] : 'NULL';
+//     } else {
+//         $jumlah_default_raw = $data['jumlah_default'] ?? '0';
+//         $fk_varian_bahan = !empty($data['fk_varian_bahan']) ? (int)$data['fk_varian_bahan'] : 'NULL';
+//     }
+
+//     $jumlah_default = parseFraksi($jumlah_default_raw);
+
+//     $query = "UPDATE bahan_baku SET
+//                 nama_bahan = '$nama_bahan',
+//                 jumlah_default = '$jumlah_default',
+//                 satuan = '$satuan',
+//                 fk_varian_bahan = $fk_varian_bahan
+//               WHERE id_bahan = $id_bahan";
+
+//     mysqli_query($conn, $query);
+//     return mysqli_affected_rows($conn);
+// }
 
 function hapusBahan($id_bahan)
 {
@@ -368,26 +422,51 @@ function hapusBahan($id_bahan)
     return mysqli_affected_rows($conn);
 }
 
+// function harga_menu($fk_menu, $fk_pesanan_varian)
+// {
+//     global $conn;
+
+//     //ambil harga menu dasar
+//     $queryMenu = "SELECT harga_menu FROM menu WHERE id_menu = $fk_menu";
+//     $resultMenu = mysqli_query($conn, $queryMenu);
+//     $menu = mysqli_fetch_assoc($resultMenu);
+//     $harga_dasar = $menu['harga_menu'] ?? 0;
+
+//     //ambil harga varian
+//     $queryVarian = "SELECT harga_varian FROM menu_varian WHERE id_varian = $fk_pesanan_varian";
+//     $resultVarian = mysqli_query($conn, $queryVarian);
+//     $varian = mysqli_fetch_assoc($resultVarian);
+//     $harga_varian = $varian['harga_varian'] ?? 0;
+
+//     // total harga menu dengan varian
+//     $harga_menu = $harga_dasar + $harga_varian;
+
+//     return $harga_menu;
+// }
+
 function harga_menu($fk_menu, $fk_pesanan_varian)
 {
     global $conn;
 
-    //ambil harga menu dasar
+    // 1. Ambil harga menu dasar
     $queryMenu = "SELECT harga_menu FROM menu WHERE id_menu = $fk_menu";
     $resultMenu = mysqli_query($conn, $queryMenu);
     $menu = mysqli_fetch_assoc($resultMenu);
     $harga_dasar = $menu['harga_menu'] ?? 0;
 
-    //ambil harga varian
-    $queryVarian = "SELECT harga_varian FROM menu_varian WHERE id_varian = $fk_pesanan_varian";
-    $resultVarian = mysqli_query($conn, $queryVarian);
-    $varian = mysqli_fetch_assoc($resultVarian);
-    $harga_varian = $varian['harga_varian'] ?? 0;
+    // 2. Ambil harga varian (HANYA JIKA varian tidak NULL atau kosong)
+    $harga_varian = 0;
+    if (!is_null($fk_pesanan_varian) && $fk_pesanan_varian !== '' && $fk_pesanan_varian > 0) {
+        $queryVarian = "SELECT harga_varian FROM menu_varian WHERE id_varian = $fk_pesanan_varian";
+        $resultVarian = mysqli_query($conn, $queryVarian);
+        $varian = mysqli_fetch_assoc($resultVarian);
+        $harga_varian = $varian['harga_varian'] ?? 0;
+    }
 
-    // total harga menu dengan varian
-    $harga_menu = $harga_dasar + $harga_varian;
+    // 3. Total harga menu dengan varian
+    $total_harga = $harga_dasar + $harga_varian;
 
-    return $harga_menu;
+    return $total_harga;
 }
 
 function tambahPesanan($data)
@@ -395,9 +474,14 @@ function tambahPesanan($data)
     global $conn;
 
     $fk_customer = (int)$data['fk_customer'];
+
+    // Pastikan $data['fk_menu'] ini dikirim dari inputBahanPesan.php
+    $fk_menu = (int)$data['fk_menu'];
+
     $fk_pesanan_varian = isset($data['fk_pesanan_varian']) && $data['fk_pesanan_varian'] !== null
         ? (int)$data['fk_pesanan_varian']
         : null;
+
     $fk_varian_value = is_null($fk_pesanan_varian) ? "NULL" : "'$fk_pesanan_varian'";
     $jumlah = (int)$data['jumlah'];
     $catatan = mysqli_real_escape_string($conn, $data['catatan']);
@@ -405,14 +489,13 @@ function tambahPesanan($data)
     $metode = mysqli_real_escape_string($conn, $data['metode']);
 
     // Hitung harga total
-    $fk_menu = (int)$data['fk_menu'];
     $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
     $harga_total = $harga_satuan * $jumlah;
 
     // Tentukan status
     $status = 'Diterima';
 
-    // Query yang benar
+    // QUERY INSERT (9 kolom, 9 nilai)
     $query = "INSERT INTO pesanan (
         jumlah, 
         harga_total, 
@@ -422,7 +505,8 @@ function tambahPesanan($data)
         metode_pengantaran, 
         tanggal_antar,
         fk_pesanan_varian, 
-        fk_pesanan_customer
+        fk_pesanan_customer,
+        fk_menu 
     ) VALUES (
         '$jumlah',
         '$harga_total',
@@ -432,7 +516,8 @@ function tambahPesanan($data)
         '$metode',
         '$tanggal_antar',
         $fk_varian_value,
-        '$fk_customer'
+        '$fk_customer',
+        '$fk_menu'
     )";
 
     mysqli_query($conn, $query);
@@ -557,78 +642,67 @@ function editPesanan($data)
     global $conn;
 
     $id_pesanan = isset($data['id_pesanan']) ? (int)$data['id_pesanan'] : 0;
+    if ($id_pesanan === 0) return -1;
 
-    if ($id_pesanan === 0) {
-        die("ID pesanan tidak ada!");
-    }
-    $fk_customer = (int)$data['nama_pelanggan']; // fix
-    $fk_pesanan_varian = isset($data['fk_pesanan_varian']) && $data['fk_pesanan_varian'] !== ''
-        ? (int)$data['fk_pesanan_varian']
-        : null;
-    $jumlah = (int)$data['jumlah'];
+    // Data yang diambil dari form
+    $id_pelanggan = (int)$data['nama_pelanggan'];
+    $fk_menu = (int)$data['fk_menu_pilih'];
+    $jumlah = (int)$data['jumlah']; // Jumlah baru
     $catatan = mysqli_real_escape_string($conn, $data['catatan_khusus_pemesanan']);
-    // $tanggal_antar = mysqli_real_escape_string($conn, $data['tanggal_antar']);
     $tanggal_antar = date('Y-m-d H:i:s', strtotime($data['tanggal_antar']));
-    $metode = $data['metode_pengantaran'] ?? '';
+    $metode = mysqli_real_escape_string($conn, $data['metode_pengantaran']);
     $packing = mysqli_real_escape_string($conn, $data['packing'] ?? '');
+    $fk_pesanan_varian = !empty($data['fk_pesanan_varian']) ? (int)$data['fk_pesanan_varian'] : null;
 
-    // status otomatis
+    // 1. Hitung ulang harga total
+    $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
+    $harga_total = $harga_satuan * $jumlah;
+
+    // Status otomatis
     if ($metode == 'Kurir Catering') {
         $status = 'Diterima';
     } else {
         $status = 'Selesai';
     }
 
-    $status = mysqli_real_escape_string($conn, $status);
+    $varian_value = is_null($fk_pesanan_varian) ? "NULL" : "'$fk_pesanan_varian'";
 
-    // ambil tanggal lama
-    $result = mysqli_query($conn, "SELECT tanggal_pesan FROM pesanan WHERE id_pesanan = $id_pesanan");
-    if (!$result || mysqli_num_rows($result) == 0) {
-        return -1; // atau handle error
-    }
-    $row = mysqli_fetch_assoc($result);
-    $tanggal_pesan_lama = $row['tanggal_pesan'];
-    $fk_menu = (int)$data['fk_menu_pilih'];
-    $harga_satuan = harga_menu($fk_menu, $fk_pesanan_varian);
-    $harga_total = $harga_satuan * $jumlah;
-
+    // 2. Update tabel pesanan
     $query = "UPDATE pesanan SET
-        fk_pesanan_customer = '$fk_customer',
-        fk_pesanan_varian = " . ($fk_pesanan_varian ? "'$fk_pesanan_varian'" : "NULL") . ",
+        fk_pesanan_customer = '$id_pelanggan',
+        fk_menu = '$fk_menu',
+        fk_pesanan_varian = $varian_value,
         jumlah = '$jumlah',
         harga_total = '$harga_total',
         catatan_khusus_pemesanan = '$catatan',
         tanggal_antar = '$tanggal_antar',
         metode_pengantaran = '$metode',
-        status_pemesanan = '$status',
-        tanggal_pesan = '$tanggal_pesan_lama'
+        status_pemesanan = '$status'
         WHERE id_pesanan = $id_pesanan";
 
-    // 1. Hapus bahan lama
-    mysqli_query($conn, "DELETE FROM detail_pesanan_bahan WHERE fk_detail_pesanan = $id_pesanan");
-
-    // 2. Ambil bahan baru dari tabel bahan_baku
-    if ($fk_pesanan_varian) {
-        $bahan = query("SELECT * FROM bahan_baku 
-        WHERE fk_menu_bahan = $fk_menu 
-        AND (fk_varian_bahan = $fk_pesanan_varian OR fk_varian_bahan IS NULL)");
-    } else {
-        $bahan = query("SELECT * FROM bahan_baku 
-        WHERE fk_menu_bahan = $fk_menu 
-        AND fk_varian_bahan IS NULL");
-    }
-
-    // 3. Insert ulang bahan sesuai jumlah
-    foreach ($bahan as $b) {
-        $jumlah_dipakai = $b['jumlah_default'] * $jumlah;
-        $id_bahan = $b['id_bahan'];
-
-        mysqli_query($conn, "INSERT INTO detail_pesanan_bahan 
-        (fk_detail_pesanan, fk_bahan_detail, jumlah_dipakai, packing)
-        VALUES ($id_pesanan, $id_bahan, $jumlah_dipakai, '$packing')");
-    }
-
     mysqli_query($conn, $query);
+
+    // 3. Update tabel detail_pesanan_bahan (Hitung ulang jumlah_dipakai)
+    // Ambil semua bahan yang terikat di pesanan ini
+    $detail_lama = query("SELECT * FROM detail_pesanan_bahan WHERE fk_detail_pesanan = $id_pesanan");
+
+    foreach ($detail_lama as $d) {
+        // Cari jumlah_default asli dari tabel bahan_baku
+        $bahan_asli = query("SELECT jumlah_default FROM bahan_baku WHERE id_bahan = {$d['fk_bahan_detail']}");
+        if (!empty($bahan_asli)) {
+            $jumlah_default = $bahan_asli[0]['jumlah_default'];
+
+            // Hitung jumlah baru
+            $jumlah_baru = $jumlah_default * $jumlah;
+
+            // Update ke tabel detail
+            mysqli_query($conn, "UPDATE detail_pesanan_bahan SET 
+                jumlah_dipakai = '$jumlah_baru', 
+                packing = '$packing' 
+                WHERE id_detail = {$d['id_detail']}");
+        }
+    }
+
     return mysqli_affected_rows($conn);
 }
 
@@ -955,7 +1029,7 @@ function updateStatusPesanan($id_pesanan, $status_baru)
         return ['success' => false, 'message' => 'Parameter tidak valid'];
     }
 
-    // Update status_pemesanan
+    // 1. Update status_pemesanan
     $query = "UPDATE pesanan SET status_pemesanan = '$status_baru' WHERE id_pesanan = $id_pesanan";
     $hasil = mysqli_query($conn, $query);
 
@@ -963,8 +1037,9 @@ function updateStatusPesanan($id_pesanan, $status_baru)
         return ['success' => false, 'message' => 'Gagal update database'];
     }
 
-    // Cek metode pengantaran ketika status Selesai
+    // 2. Cek logika status pengantaran
     if ($status_baru == 'Selesai') {
+        // Jika Selesai, tentukan status pengantaran berdasarkan metode
         $cek = query("SELECT metode_pengantaran FROM pesanan WHERE id_pesanan = $id_pesanan");
         $metode = $cek[0]['metode_pengantaran'] ?? '';
 
@@ -973,6 +1048,12 @@ function updateStatusPesanan($id_pesanan, $status_baru)
         } else {
             mysqli_query($conn, "UPDATE pesanan SET status_pengantaran = 'Selesai' WHERE id_pesanan = $id_pesanan");
         }
+    } else if ($status_baru == 'Diantar') {
+        // Jika Diantar, set status pengantaran ke 'Sedang Diantar'
+        mysqli_query($conn, "UPDATE pesanan SET status_pengantaran = 'Sedang Diantar' WHERE id_pesanan = $id_pesanan");
+    } else {
+        // JIKA STATUS DIUBAH KE 'Diterima' ATAU 'Diproses', RESET STATUS PENGANTARAN JADI NULL
+        mysqli_query($conn, "UPDATE pesanan SET status_pengantaran = NULL WHERE id_pesanan = $id_pesanan");
     }
 
     return ['success' => true, 'message' => 'Status berhasil diupdate'];
@@ -989,10 +1070,21 @@ function updateStatusPengantaran($id_pesanan, $status_baru)
         return ['success' => false, 'message' => 'Invalid parameters'];
     }
 
+    // 1. Update status_pengantaran
     $query = "UPDATE pesanan SET status_pengantaran = '$status_baru' WHERE id_pesanan = $id_pesanan";
     $hasil = mysqli_query($conn, $query);
 
     if ($hasil) {
+        // 2. Jika dikembalikan ke 'Dalam Proses', berarti pesanan kembali ke dapur.
+        // Kita harus ubah status_pemesanan menjadi 'Diproses' (atau 'Diterima')
+        if ($status_baru == 'Dalam Proses') {
+            mysqli_query($conn, "UPDATE pesanan SET status_pemesanan = 'Diproses' WHERE id_pesanan = $id_pesanan");
+        }
+        // Jika 'Diterima' (di halaman pengantaran maksudnya baru masuk antrean)
+        else if ($status_baru == 'Diterima') {
+            mysqli_query($conn, "UPDATE pesanan SET status_pemesanan = 'Selesai' WHERE id_pesanan = $id_pesanan");
+        }
+
         return ['success' => true];
     } else {
         return ['success' => false, 'message' => 'Database error: ' . mysqli_error($conn)];

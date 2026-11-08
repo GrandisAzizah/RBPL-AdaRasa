@@ -37,7 +37,7 @@ if (isset($_POST["submit"])) {
 
     $dataPesanan = [
         'fk_customer' => $_SESSION['pesanan']['fk_customer'],
-        'fk_menu' => $_SESSION['pesanan']['fk_menu'],
+        'fk_menu' => $_SESSION['pesanan']['fk_menu'], // <--- PASTIKAN INI ADA
         'fk_pesanan_varian' => $_SESSION['pesanan']['fk_pesanan_varian'],
         'jumlah' => $_SESSION['pesanan']['jumlah'],
         'catatan' => $_SESSION['pesanan']['catatan'],
