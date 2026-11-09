@@ -9,7 +9,7 @@
 // );
 require_once __DIR__ . '/config.php';
 
-$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+$conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name, $db_port);
 $GLOBALS['conn'] = $conn;
 
 // $conn = mysqli_connect(
