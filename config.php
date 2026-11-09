@@ -1,20 +1,19 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-// if (php_sapi_name() === 'cli' || isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] === 'testing') {
-//     $db_host = "localhost";
-//     $db_user = "root";
-//     $db_pass = "";
-//     $db_name = "adarasa_test";
-// } else {
-//     $db_host = "localhost";
-//     $db_user = "root";
-//     $db_pass = "";
-//     $db_name = "adarasa";
-// }
+// config.php
 
-$db_host = "localhost";
-$db_user = "root";
-$db_pass = "";
-$db_name = "adarasa";
+// Cek apakah kita sedang berjalan di Railway
+// Railway otomatis menyediakan variabel MYSQLHOST, MYSQLUSER, dll.
+if (getenv('MYSQLHOST') !== false) {
+    $db_host = getenv('MYSQLHOST');
+    $db_user = getenv('MYSQLUSER');
+    $db_pass = getenv('MYSQLPASSWORD');
+    $db_name = getenv('MYSQLDATABASE');
+    $db_port = getenv('MYSQLPORT') ?: 3306;
+} else {
+    // Jika tidak ada variabel Railway, berarti kita sedang di Laragon (Lokal)
+    $db_host = "localhost";
+    $db_user = "root";
+    $db_pass = "";
+    $db_name = "adarasa";
+    $db_port = 3306;
+}
